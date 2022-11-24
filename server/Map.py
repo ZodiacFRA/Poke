@@ -10,7 +10,6 @@ class Tile(object):
         self.t = topObject
         self.b = bottomObject
 
-
 class Map(object):
     def __init__(self, y_size, x_size):
         super(Map, self).__init__()
@@ -37,35 +36,40 @@ class Map(object):
             self.map[player.pos.y][player.pos.x].t = player
             print(f"Player spawned at position {player.pos}")
 
+    def remove_entity(self, pos):
+        tmp = self.map[pos.y][pos.x]
+        self.map[pos.y][pos.x] = ""
+        return tmp
+
     def generate_map(self):
         for tmp in range(20):
             self.map[random.randint(0, self.y_size - 1)][random.randint(0, self.x_size - 1)].t = Wall()
 
-    def move(self, from_pos, to_pos):
-        self.print_map_pos(from_pos)
-        self.print_map_pos(to_pos)
+    def move(self, from_pos, to_pos, debug=False):
+        if debug:
+            self.print_map_pos("[ ] - before move - from", from_pos)
+            self.print_map_pos("[ ] - before move - to", to_pos)
         self.map[to_pos.y][to_pos.x].t = self.map[from_pos.y][from_pos.x].t
         self.map[from_pos.y][from_pos.x].t = None
-        # print("moved from ", from_pos, " to", to_pos)
-        self.print_map_pos(from_pos)
-        self.print_map_pos(to_pos)
+        if debug:
+            self.print_map_pos("[ ] - after move - from", from_pos)
+            self.print_map_pos("[ ] - after move - to", to_pos)
 
     def is_colliding_pos(self, pos):
+        # OOB -> colliding
         if pos.x < 0 or pos.x >= self.x_size or pos.y < 0 or pos.y >= self.y_size:
             return True
+        # No Floor -> colliding
+        if self.map[pos.y][pos.x].b is None:
+            return True
+        # Floor only -> Not colliding
         if self.map[pos.y][pos.x].t is None:
             return False
-        if self.map[pos.y][pos.x].t is not None and not self.map[pos.y][pos.x].t.collider:
+        # Floor and Non-colliding entity -> Not colliding
+        if not self.map[pos.y][pos.x].t.collider:
             return False
+        # Floor and Colliding entity -> colliding
         return True
-
-    def print_map_pos(self, pos):
-        top = self.map[pos.y][pos.x].t
-        bottom = self.map[pos.y][pos.x].b
-        if top is not None:
-            print(f"{pos}: bottom={type(bottom)} top={type(top)}")
-        else:
-            print(f"{pos}: bottom={type(bottom)} top=None")
 
     def serialize(self):
         serialized = {"bottom": [], "top": []}
@@ -80,3 +84,11 @@ class Map(object):
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized
+
+    def print_map_pos(self, msg, pos):
+        top = self.map[pos.y][pos.x].t
+        bottom = self.map[pos.y][pos.x].b
+        if top is not None:
+            print(f"{msg} {pos}: bottom={type(bottom)} top={type(top)}")
+        else:
+            print(f"{msg} {pos}: bottom={type(bottom)} top=None")

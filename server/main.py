@@ -15,9 +15,11 @@ class App(object):
         super(App, self).__init__()
         self.map = Map(20, 20)
         self.players = {}
+        self.LivingEntities = {}
 
         self.server = WebsocketServer(host='localhost', port=50000, loglevel=logging.INFO)
         self.server.set_fn_new_client(self.on_new_client)
+        self.server.set_fn_client_left(self.on_client_leave)
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever()
 
@@ -32,36 +34,38 @@ class App(object):
         message = {"type": "init_map", "sprites_table": self.map.sprites, "map": map}
         self.server.send_message_to_all(json.dumps(message))
 
+    def on_client_leave(self, client, server):
+        player = self.players.pop(client["id"])
+        self.map.remove_entity()
+
+        map = self.map.serialize()
+        message = {"type": "init_map", "sprites_table": self.map.sprites, "map": map}
+        self.server.send_message_to_all(json.dumps(message))
+
     def on_msg_received(self, client, server, message):
-        print(client["id"], message)
+        if message[:5] == "Arrow":
+            self.do_movement(client, message)
+        else:
+            print(client["id"], message)
+
+    def do_movement(self, client, message):
+        player_pos = self.players[client["id"]].pos
         if message == "ArrowUp":
-            player_pos = self.players[client["id"]].pos
             new_pos = Position(player_pos.y - 1, player_pos.x)
-            is_colliding_pos = self.map.is_colliding_pos(new_pos)
-            if not is_colliding_pos:
-                self.map.move(player_pos, new_pos)
-                self.players[client["id"]].pos.y -= 1
         elif message == "ArrowDown":
-            player_pos = self.players[client["id"]].pos
             new_pos = Position(player_pos.y + 1, player_pos.x)
-            is_colliding_pos = self.map.is_colliding_pos(new_pos)
-            if not is_colliding_pos:
-                self.map.move(player_pos, new_pos)
-                self.players[client["id"]].pos.y += 1
         elif message == "ArrowLeft":
-            player_pos = self.players[client["id"]].pos
             new_pos = Position(player_pos.y, player_pos.x - 1)
-            is_colliding_pos = self.map.is_colliding_pos(new_pos)
-            if not is_colliding_pos:
-                self.map.move(player_pos, new_pos)
-                self.players[client["id"]].pos.x -= 1
         elif message == "ArrowRight":
-            player_pos = self.players[client["id"]].pos
             new_pos = Position(player_pos.y, player_pos.x + 1)
-            is_colliding_pos = self.map.is_colliding_pos(new_pos)
-            if not is_colliding_pos:
-                self.map.move(player_pos, new_pos)
-                self.players[client["id"]].pos.x += 1
+        else:
+            # Not a movement
+            return
+
+        is_colliding_pos = self.map.is_colliding_pos(new_pos)
+        if not is_colliding_pos:
+            self.map.move(player_pos, new_pos)
+            self.players[client["id"]].pos = new_pos
 
         map = self.map.serialize()
         message = {"type": "init_map", "sprites_table": self.map.sprites, "map": map}
