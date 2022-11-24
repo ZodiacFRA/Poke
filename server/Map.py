@@ -10,9 +10,9 @@ class Tile(object):
         self.t = topObject
         self.b = bottomObject
 
-class Map(object):
+class MapWrapper(object):
     def __init__(self, y_size, x_size):
-        super(Map, self).__init__()
+        super(MapWrapper, self).__init__()
         self.sprites = [
             "ground",
             "wall",
@@ -40,6 +40,9 @@ class Map(object):
         tmp = self.map[pos.y][pos.x]
         self.map[pos.y][pos.x] = ""
         return tmp
+
+    def get(self, pos):
+        return self.map[pos.y][pos.x]
 
     def generate_map(self):
         for tmp in range(20):

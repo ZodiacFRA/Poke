@@ -5,7 +5,7 @@ from pprint import pprint
 # https://github.com/Pithikos/python-websocket-server#api
 from websocket_server import WebsocketServer
 
-from Map import Map
+from Map import MapWrapper
 from Entities import Player
 from utils import Position
 
@@ -13,7 +13,7 @@ from utils import Position
 class App(object):
     def __init__(self):
         super(App, self).__init__()
-        self.map = Map(20, 20)
+        self.map_wrapper = MapWrapper(20, 20)
         self.players = {}
         self.LivingEntities = {}
 
@@ -28,18 +28,18 @@ class App(object):
         player_pos = Position(1, 1)
         player = Player(Position(1, 1), "jm", client["id"])
         self.players[client["id"]] = player
-        self.map.add_player(player)
+        self.map_wrapper.add_player(player)
 
-        map = self.map.serialize()
-        message = {"type": "init_map", "sprites_table": self.map.sprites, "map": map}
+        map = self.map_wrapper.serialize()
+        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
         self.server.send_message_to_all(json.dumps(message))
 
     def on_client_leave(self, client, server):
         player = self.players.pop(client["id"])
-        self.map.remove_entity()
+        self.map_wrapper.remove_entity()
 
-        map = self.map.serialize()
-        message = {"type": "init_map", "sprites_table": self.map.sprites, "map": map}
+        map = self.map_wrapper.serialize()
+        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
         self.server.send_message_to_all(json.dumps(message))
 
     def on_msg_received(self, client, server, message):
@@ -62,13 +62,13 @@ class App(object):
             # Not a movement
             return
 
-        is_colliding_pos = self.map.is_colliding_pos(new_pos)
+        is_colliding_pos = self.map_wrapper.is_colliding_pos(new_pos)
         if not is_colliding_pos:
-            self.map.move(player_pos, new_pos)
+            self.map_wrapper.move(player_pos, new_pos)
             self.players[client["id"]].pos = new_pos
 
-        map = self.map.serialize()
-        message = {"type": "init_map", "sprites_table": self.map.sprites, "map": map}
+        map = self.map_wrapper.serialize()
+        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
         self.server.send_message_to_all(json.dumps(message))
 
 
