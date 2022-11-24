@@ -19,8 +19,9 @@ class App(object):
 
     def new_client(self, client, server):
         self.server.send_message_to_all("Hfey all, a new client has joined us")
-        self.server.send_message(client, json.dumps(self.map.sprites))
-        self.server.send_message(client, json.dumps(self.map.serialize()))
+        map = self.map.serialize()
+        map["sprites_table"] = self.map.sprites
+        self.server.send_message(client, json.dumps(map))
 
     def msg_received(self, client, server, message):
         print(client, message)
