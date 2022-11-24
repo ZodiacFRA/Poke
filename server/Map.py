@@ -1,33 +1,15 @@
 import random
 
+from Entities import *
+from utils import Position
 
-class Entity(object):
-    def __init__(self):
-        super(Entity, self).__init__()
-        self.collider = False
-        self.sprite = None
-
-class Ground(Entity):
-    def __init__(self, sprite="ground"):
-        super(Entity, self).__init__()
-        self.sprite = sprite
-
-class Wall(Entity):
-    def __init__(self, sprite="wall"):
-        super(Entity, self).__init__()
-        self.collider = True
-        self.sprite = sprite
-
-class Player(Entity):
-    def __init__(self, name, sprite="player_0"):
-        super(Entity, self).__init__()
-        self.sprite = sprite
 
 class Tile(object):
     def __init__(self, bottomObject, topObject=None):
         super(Tile, self).__init__()
         self.t = topObject
         self.b = bottomObject
+
 
 class Map(object):
     def __init__(self, y_size, x_size):
@@ -45,12 +27,45 @@ class Map(object):
             for x_idx in range(self.x_size):
                 line.append(Tile(Ground()))
             self.map.append(line)
+        self.generate_map()
 
-        ################ Random wall fill (TMP)
+    def add_player(self, player):
+        tile_top = self.map[player.pos.y][player.pos.x].t
+        if tile_top is not None:
+            print(f"Player spawn collision with {type(tile_top)} at position {player.pos}")
+        else:
+            self.map[player.pos.y][player.pos.x].t = player
+            print(f"Player spawned at position {player.pos}")
+
+    def generate_map(self):
         for tmp in range(20):
             self.map[random.randint(0, self.y_size - 1)][random.randint(0, self.x_size - 1)].t = Wall()
 
-        self.map[1][1].t = Player("jbbbb")
+    def move(self, from_pos, to_pos):
+        self.print_map_pos(from_pos)
+        self.print_map_pos(to_pos)
+        self.map[to_pos.y][to_pos.x].t = self.map[from_pos.y][from_pos.x].t
+        self.map[from_pos.y][from_pos.x].t = None
+        # print("moved from ", from_pos, " to", to_pos)
+        self.print_map_pos(from_pos)
+        self.print_map_pos(to_pos)
+
+    def is_colliding_pos(self, pos):
+        if pos.x < 0 or pos.x >= self.x_size or pos.y < 0 or pos.y >= self.y_size:
+            return True
+        if self.map[pos.y][pos.x].t is None:
+            return False
+        if self.map[pos.y][pos.x].t is not None and not self.map[pos.y][pos.x].t.collider:
+            return False
+        return True
+
+    def print_map_pos(self, pos):
+        top = self.map[pos.y][pos.x].t
+        bottom = self.map[pos.y][pos.x].b
+        if top is not None:
+            print(f"{pos}: bottom={type(bottom)} top={type(top)}")
+        else:
+            print(f"{pos}: bottom={type(bottom)} top=None")
 
     def serialize(self):
         serialized = {"bottom": [], "top": []}
