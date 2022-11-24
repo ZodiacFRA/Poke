@@ -1,10 +1,5 @@
 import random
 
-SPRITES = [
-    "ground",
-    "wall",
-    "player_0"
-]
 
 class Entity(object):
     def __init__(self):
@@ -37,6 +32,11 @@ class Tile(object):
 class Map(object):
     def __init__(self, y_size, x_size):
         super(Map, self).__init__()
+        self.sprites = [
+            "ground",
+            "wall",
+            "player_0"
+        ]
         self.y_size = y_size
         self.x_size = x_size
         self.map = []
@@ -60,8 +60,8 @@ class Map(object):
             for x_idx in range(self.x_size):
                 top_entity = self.map[y_idx][x_idx].t
                 bottom_entity = self.map[y_idx][x_idx].b
-                top_line.append("" if top_entity is None else top_entity.sprite)
-                bottom_line.append("" if bottom_entity is None else bottom_entity.sprite)
+                top_line.append("" if top_entity is None else self.sprites.index(top_entity.sprite))
+                bottom_line.append("" if bottom_entity is None else self.sprites.index(bottom_entity.sprite))
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized

@@ -2,6 +2,7 @@ import json
 import logging
 from pprint import pprint
 
+# https://github.com/Pithikos/python-websocket-server#api
 from websocket_server import WebsocketServer
 
 from Map import Map
@@ -18,6 +19,7 @@ class App(object):
 
     def new_client(self, client, server):
         self.server.send_message_to_all("Hfey all, a new client has joined us")
+        self.server.send_message(client, json.dumps(self.map.sprites))
         self.server.send_message(client, json.dumps(self.map.serialize()))
 
     def msg_received(self, client, server, message):
