@@ -21,8 +21,6 @@ class App(object):
             target_pos=Position(3, 7))
         )
 
-        exit()
-
         self.players = {}
         self.LivingEntities = {}
 
