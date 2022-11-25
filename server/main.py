@@ -134,8 +134,6 @@ class App(object):
         self.incoming_messages.append((client, message))
         if message[:5] == "Arrow":
             self.do_movement(client, message)
-        else:
-            print(client["id"], message)
 
 
 if __name__ == '__main__':
