@@ -79,7 +79,7 @@ class App(object):
 
     def on_client_leave(self, client, server):
         player = self.players.pop(client["id"])
-        self.map_wrapper.remove_entity()
+        self.map_wrapper.remove_entity(player.pos)
 
         map = self.map_wrapper.serialize()
         message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
