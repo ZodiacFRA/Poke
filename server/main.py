@@ -1,5 +1,6 @@
 import time
 import json
+import random
 import logging
 from pprint import pprint
 
@@ -8,37 +9,37 @@ from websocket_server import WebsocketServer
 
 from utils import Position
 from Map import MapWrapper
-from Entities import Player
-from Dijkstra import Dijkstra
+from Entities import *
 
 
 class App(object):
     def __init__(self):
         super(App, self).__init__()
-        # Game state
-        self.map_wrapper = MapWrapper("./maps/map.txt")
-        self.pathfinder = Dijkstra(self.map_wrapper)
+        ### Game state
+        self.map_wrapper = MapWrapper("./maps/pathfinding_demo_map.txt")
         # print(self.pathfinder.get_shortest_path(
         #     from_pos=Position(3, 1),
         #     target_pos=Position(3, 7))
         # )
         self.players = {}
-        self.LivingEntities = {}
-        # Networking
+        self.living_entities = []
+
+        ### Networking
         self.incoming_messages = []
         self.message_types_functions = {
             "enter_game": self.add_new_player,
             "key_input": self.do_movement
         }
+        self.delta_messages = []
 
         self.server = WebsocketServer(host='localhost', port=50000, loglevel=logging.INFO)
         # TODO: remove set_fn_new_client as this will be handled by a specific message
         # when the client is ready
-        self.server.set_fn_new_client(self.on_new_client)
+        self.server.set_fn_new_client(self.add_new_player)
         self.server.set_fn_client_left(self.on_client_leave)
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
-        # Game loop
+        ### Game loop
         self.delta_time = 1
         self.launch()
 
@@ -47,6 +48,7 @@ class App(object):
             start_time = time.time()
             print("tick")
             self.process_incoming_messages()
+            # self.process_living_entities()
             time.sleep(self.delta_time - (time.time() - start_time))
 
     def process_incoming_messages(self):
@@ -63,14 +65,32 @@ class App(object):
                 else:
                     func(client, msg)
 
-    ########################################3
-    ## Message processing
+    def process_living_entities(self):
+        for le in self.living_entities:
+            le.do_turn(self.map_wrapper, self.players, self.living_entities)
+
+    ########################################
+    ### Message processing
 
     def add_new_player(self, client, msg):
-        player_pos = Position(1, 1)
-        player = Player(Position(1, 1), "jm", client["id"])
+        player_pos = self.map_wrapper.get_available_position()
+        player_pos = Position(1, 6)
+        player = Player(player_pos, "jean michel", client["id"])
         self.players[client["id"]] = player
-        self.map_wrapper.add_player(player)
+        self.map_wrapper.add_entity(player.pos, player)
+        print(f"Player spawned at position {player.pos}")
+
+        ##### TMP
+        pet_position = self.map_wrapper.get_available_position()
+        pet_position = Position(3, 7)
+        print(f"Pet spawning at position {pet_position}")
+        pet = Pet(
+            pos=pet_position,
+            owner_id=self.players[random.choice(list(self.players.values())).id].id
+        )
+        self.living_entities.append(pet)
+        self.map_wrapper.add_entity(pet.pos, pet)
+
 
         map = self.map_wrapper.serialize()
         message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
@@ -92,7 +112,7 @@ class App(object):
 
         is_colliding_pos = self.map_wrapper.is_colliding_pos(new_pos)
         if not is_colliding_pos:
-            self.map_wrapper.move(player_pos, new_pos)
+            self.map_wrapper.move_entity(player_pos, new_pos)
             self.players[client["id"]].pos = new_pos
 
         map = self.map_wrapper.serialize()
@@ -100,25 +120,12 @@ class App(object):
         self.server.send_message_to_all(json.dumps(msg))
 
     ########################################3
-    ## Networking
-
-    def on_new_client(self, client, server):
-        """ TODO: Remove everything here as the player will be created on the reception
-        of a special message later on, waiting for the client implementation.
-        For now the player is created here """
-        player_pos = Position(1, 1)
-        player = Player(Position(1, 1), "jm", client["id"])
-        self.players[client["id"]] = player
-        self.map_wrapper.add_player(player)
-
-        map = self.map_wrapper.serialize()
-        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
-        self.server.send_message_to_all(json.dumps(message))
+    ### Networking
 
     def on_client_leave(self, client, server):
         player = self.players.pop(client["id"])
         self.map_wrapper.remove_entity(player.pos)
-
+        # Send update
         map = self.map_wrapper.serialize()
         message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
         self.server.send_message_to_all(json.dumps(message))

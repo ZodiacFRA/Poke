@@ -30,12 +30,12 @@ class Tile(object):
     def __repr__(self):
         tmp = "bottom entity: "
         if self.b is not None:
-            tmp += type(bottom)
+            tmp += str(type(self.b))
         else:
             tmp += "None"
         tmp += " top entity: "
         if self.t is not None:
-            tmp += type(top)
+            tmp += str(type(self.t))
         else:
             tmp += "None"
         return tmp

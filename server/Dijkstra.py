@@ -16,7 +16,8 @@ class Node(object):
 
 
 class Dijkstra(object):
-    """ Dijkstra pathfinding algorithm implementation """
+    """ Dijkstra pathfinding algorithm implementation
+    TODO: Find a way to avoid top colliding entities as well """
     def __init__(self, map_wrapper):
         self.deltas = (Position(-1, 0), Position(0, 1), Position(1, 0), Position(0, -1))
         self.map_wrapper = map_wrapper
@@ -24,9 +25,6 @@ class Dijkstra(object):
     def get_shortest_path(self, from_pos, target_pos):
         """ A complete re evaluation of the graph is done each time for now, as
         colliding entities can change positions """
-        if self.map_wrapper.is_colliding_pos(from_pos) or self.map_wrapper.is_colliding_pos(target_pos):
-            print(f"[-] - Dijkstra: Position not accessible: either {from_pos} or {target_pos}")
-            return None
         self.root_node = Node(from_pos, 0)
         self.target_pos = target_pos
 
@@ -98,8 +96,7 @@ class Dijkstra(object):
                 line.append(-1)
             tmp.append(line)
 
-        while len(self.done_nodes) > 0:
-            node = self.done_nodes.popitem(False)[1]
+        for key, node in self.done_nodes.items():
             tmp[node.pos.y][node.pos.x] = node.distance
 
         for y_idx in range(self.map_wrapper.y_size):

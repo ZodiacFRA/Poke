@@ -1,12 +1,14 @@
 import random
 
 from Entities import *
+from Dijkstra import Dijkstra
 from utils import Position, Tile
 
 
 class MapWrapper(object):
     def __init__(self, map_filepath):
         super(MapWrapper, self).__init__()
+        self.pathfinder = Dijkstra(self)
         self.sprites = [
             "ground",
             "wall",
@@ -17,27 +19,26 @@ class MapWrapper(object):
         self.x_size = -1
         self.load_map(map_filepath)
 
-    def add_player(self, player):
-        self.map[player.pos.y][player.pos.x].t = player
-        print(f"Player spawned at position {player.pos}")
+    def add_entity(self, pos, entity):
+        self.map[pos.y][pos.x].t = entity
 
     def remove_entity(self, pos):
         """ Only removes the top entity, as we don't want any holes in the ground
         Use the swap() method to change bottom entities """
-        tmp = self.map[pos.y][pos.x]
-        self.map[pos.y][pos.x] = ""
+        tmp = self.map[pos.y][pos.x].t
+        self.map[pos.y][pos.x].t = None
         return tmp
 
     def get(self, pos):
         return self.map[pos.y][pos.x]
 
-    def move(self, from_pos, to_pos, debug=False):
+    def move_entity(self, from_pos, to_pos, debug=False):
         if debug:
-            print(f"""[ ] - Before moving - from {from_pos} ({self.map_wrapper.get(from_pos)}) to {to_pos}  ({self.map_wrapper.get(to_pos)})""")
+            print(f"""[ ] - Before moving - from {from_pos} ({self.get(from_pos)}) to {to_pos}  ({self.get(to_pos)})""")
         self.map[to_pos.y][to_pos.x].t = self.map[from_pos.y][from_pos.x].t
         self.map[from_pos.y][from_pos.x].t = None
         if debug:
-            print(f"""[ ] - After moving - from {from_pos} ({self.map_wrapper.get(from_pos)}) to {to_pos}  ({self.map_wrapper.get(to_pos)})""")
+            print(f"""[ ] - After moving - from {from_pos} ({self.get(from_pos)}) to {to_pos}  ({self.get(to_pos)})""")
 
     def is_colliding_pos(self, pos):
         # OOB -> colliding
@@ -53,7 +54,21 @@ class MapWrapper(object):
         if not self.map[pos.y][pos.x].t.collider:
             return False
         # Floor and Colliding entity -> colliding
-        return True
+        return False
+
+    def get_available_position(self, retries=100):
+        """ Random search """
+        pos = Position(-1, -1)
+        count = 0
+        while count <= retries:
+            pos = Position(
+                random.randint(0, self.y_size),
+                random.randint(0, self.x_size)
+            )
+            count += 1
+            if not self.is_colliding_pos(pos):
+                return pos
+        return None
 
     def load_map(self, map_filepath):
         with open(map_filepath, "r") as f:
@@ -67,7 +82,7 @@ class MapWrapper(object):
         for y_idx, line in enumerate(data):
             map_line = []
             for x_idx, char in enumerate(line):
-                if char == " ":
+                if char == "":
                     map_line.append(Tile())
                 elif char == "0":
                     map_line.append(Tile(Ground()))
@@ -84,6 +99,8 @@ class MapWrapper(object):
             top_line = []
             bottom_line = []
             for x_idx in range(self.x_size):
+                if self.map[y_idx][x_idx] is None:
+                    print(f"[-] - Serializer error")
                 top_entity = self.map[y_idx][x_idx].t
                 bottom_entity = self.map[y_idx][x_idx].b
                 top_line.append("" if top_entity is None else self.sprites.index(top_entity.sprite))
