@@ -7,13 +7,19 @@ from websocket_server import WebsocketServer
 
 from Map import MapWrapper
 from Entities import Player
+from Dijkstra import Dijkstra
 from utils import Position
 
 
 class App(object):
     def __init__(self):
         super(App, self).__init__()
-        self.map_wrapper = MapWrapper(20, 20)
+        self.map_wrapper = MapWrapper("map.txt")
+        self.pathfinder = Dijkstra(self.map_wrapper)
+        # print(self.pathfinder.get_shortest_path(Position(3, 1), Position(3, 7)))
+
+        # exit()
+
         self.players = {}
         self.LivingEntities = {}
 

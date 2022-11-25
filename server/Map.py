@@ -5,38 +5,45 @@ from utils import Position
 
 
 class Tile(object):
-    def __init__(self, bottomObject, topObject=None):
+    def __init__(self, bottomObject=None, topObject=None):
         super(Tile, self).__init__()
         self.t = topObject
         self.b = bottomObject
 
+    def __repr__(self):
+        tmp = "bottom entity: "
+        if self.b is not None:
+            tmp += type(bottom)
+        else:
+            tmp += "None"
+        tmp += " top entity: "
+        if self.t is not None:
+            tmp += type(top)
+        else:
+            tmp += "None"
+        return tmp
+
+
 class MapWrapper(object):
-    def __init__(self, y_size, x_size):
+    def __init__(self, map_filepath):
         super(MapWrapper, self).__init__()
         self.sprites = [
             "ground",
             "wall",
             "player_0"
         ]
-        self.y_size = y_size
-        self.x_size = x_size
         self.map = []
-        for y_idx in range(self.y_size):
-            line = []
-            for x_idx in range(self.x_size):
-                line.append(Tile(Ground()))
-            self.map.append(line)
-        self.generate_map()
+        self.y_size = -1
+        self.x_size = -1
+        self.load_map(map_filepath)
 
     def add_player(self, player):
-        tile_top = self.map[player.pos.y][player.pos.x].t
-        if tile_top is not None:
-            print(f"Player spawn collision with {type(tile_top)} at position {player.pos}")
-        else:
-            self.map[player.pos.y][player.pos.x].t = player
-            print(f"Player spawned at position {player.pos}")
+        self.map[player.pos.y][player.pos.x].t = player
+        print(f"Player spawned at position {player.pos}")
 
     def remove_entity(self, pos):
+        """ Only removes the top entity, as we don't want any holes in the ground
+        Use the swap() method to change bottom entities """
         tmp = self.map[pos.y][pos.x]
         self.map[pos.y][pos.x] = ""
         return tmp
@@ -44,19 +51,13 @@ class MapWrapper(object):
     def get(self, pos):
         return self.map[pos.y][pos.x]
 
-    def generate_map(self):
-        for tmp in range(20):
-            self.map[random.randint(0, self.y_size - 1)][random.randint(0, self.x_size - 1)].t = Wall()
-
     def move(self, from_pos, to_pos, debug=False):
         if debug:
-            self.print_map_pos("[ ] - before move - from", from_pos)
-            self.print_map_pos("[ ] - before move - to", to_pos)
+            print(f"""[ ] - Before moving - from {from_pos} ({self.map_wrapper.get(from_pos)}) to {to_pos}  ({self.map_wrapper.get(to_pos)})""")
         self.map[to_pos.y][to_pos.x].t = self.map[from_pos.y][from_pos.x].t
         self.map[from_pos.y][from_pos.x].t = None
         if debug:
-            self.print_map_pos("[ ] - after move - from", from_pos)
-            self.print_map_pos("[ ] - after move - to", to_pos)
+            print(f"""[ ] - After moving - from {from_pos} ({self.map_wrapper.get(from_pos)}) to {to_pos}  ({self.map_wrapper.get(to_pos)})""")
 
     def is_colliding_pos(self, pos):
         # OOB -> colliding
@@ -74,7 +75,30 @@ class MapWrapper(object):
         # Floor and Colliding entity -> colliding
         return True
 
+    def load_map(self, map_filepath):
+        with open(map_filepath, "r") as f:
+            data = f.read().split('\n')
+            data = list(filter(None, data))
+
+        self.y_size = len(data)
+        self.x_size = max(len(x) for x in data)
+        print(f"[ ] - Map loader: max height detected: {self.y_size}")
+        print(f"[ ] - Map loader: max width detected: {self.x_size}")
+        for y_idx, line in enumerate(data):
+            map_line = []
+            for x_idx, char in enumerate(line):
+                if char == " ":
+                    map_line.append(Tile())
+                elif char == "0":
+                    map_line.append(Tile(Ground()))
+                elif char == "1":
+                    map_line.append(Tile(Ground(), Wall()))
+                elif char == "2":
+                    map_line.append(Tile(Ground(), Player()))
+            self.map.append(map_line)
+
     def serialize(self):
+        """ Network serialize the whole map"""
         serialized = {"bottom": [], "top": []}
         for y_idx in range(self.y_size):
             top_line = []
@@ -87,11 +111,3 @@ class MapWrapper(object):
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized
-
-    def print_map_pos(self, msg, pos):
-        top = self.map[pos.y][pos.x].t
-        bottom = self.map[pos.y][pos.x].b
-        if top is not None:
-            print(f"{msg} {pos}: bottom={type(bottom)} top={type(top)}")
-        else:
-            print(f"{msg} {pos}: bottom={type(bottom)} top=None")
