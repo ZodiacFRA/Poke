@@ -16,11 +16,14 @@ class Node(object):
 
 
 class Dijkstra(object):
+    """ Dijkstra pathfinding algorithm implementation """
     def __init__(self, map_wrapper):
         self.deltas = (Position(-1, 0), Position(0, 1), Position(1, 0), Position(0, -1))
         self.map_wrapper = map_wrapper
 
     def get_shortest_path(self, from_pos, target_pos):
+        """ A complete re evaluation of the graph is done each time for now, as
+        colliding entities can change positions """
         if self.map_wrapper.is_colliding_pos(from_pos) or self.map_wrapper.is_colliding_pos(target_pos):
             print(f"[-] - Dijkstra: Position not accessible: either {from_pos} or {target_pos}")
             return None
@@ -75,7 +78,6 @@ class Dijkstra(object):
                 tmp = None
                 min_neighbor = previous_node
                 while min_neighbor.distance > 0:
-                    # print("tour", min_neighbor.pos, min_neighbor.distance, min_neighbor.neighbors)
                     tmp = min_neighbor
                     min_neighbor = min(min_neighbor.neighbors, key=lambda x: x.distance)
                     res.append(min_neighbor)
@@ -86,6 +88,9 @@ class Dijkstra(object):
             previous_node = node[1]
 
     def draw_distances(self):
+        """ Debug function, will draw an ascii representation of the map,
+        containing the distance of each tile from the root node
+        (highest value should be the target) """
         tmp = []
         for y_idx in range(self.map_wrapper.y_size):
             line = []

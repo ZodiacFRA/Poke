@@ -29,3 +29,10 @@ class Player(LivingEntity):
         self.id = id
         self.sprite = sprite
         self.inventory = {}
+
+class Pet(LivingEntity):
+    def __init__(self, pos, player_id, sprite="pet_0", speed=1):
+        super().__init__(pos, speed)
+        self.collider = True
+        self.player_id = player_id
+        self.sprite = sprite
