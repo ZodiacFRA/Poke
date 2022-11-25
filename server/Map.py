@@ -94,7 +94,7 @@ class MapWrapper(object):
 
     def serialize(self):
         """ Network serialize the whole map"""
-        serialized = {"size_y": self.size_y, "size_x": self.size_x, "bottom": [], "top": []}
+        serialized = {"size_y": self.y_size, "size_x": self.x_size, "bottom": [], "top": []}
         for y_idx in range(self.y_size):
             top_line = []
             bottom_line = []
