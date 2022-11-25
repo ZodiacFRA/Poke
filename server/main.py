@@ -16,9 +16,12 @@ class App(object):
         super(App, self).__init__()
         self.map_wrapper = MapWrapper("map.txt")
         self.pathfinder = Dijkstra(self.map_wrapper)
-        # print(self.pathfinder.get_shortest_path(Position(3, 1), Position(3, 7)))
+        print(self.pathfinder.get_shortest_path(
+            from_pos=Position(3, 1),
+            target_pos=Position(3, 7))
+        )
 
-        # exit()
+        exit()
 
         self.players = {}
         self.LivingEntities = {}
