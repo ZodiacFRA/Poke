@@ -54,7 +54,7 @@ class MapWrapper(object):
         if not self.map[pos.y][pos.x].t.collider:
             return False
         # Floor and Colliding entity -> colliding
-        return False
+        return True
 
     def get_available_position(self, retries=100):
         """ Random search """
