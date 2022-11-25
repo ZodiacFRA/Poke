@@ -19,3 +19,27 @@ class Position(object):
 
     def __repr__(self):
         return f"y:{self.y}/x:{self.x}"
+
+
+class Tile(object):
+    def __init__(self, bottomObject=None, topObject=None):
+        super(Tile, self).__init__()
+        self.t = topObject
+        self.b = bottomObject
+
+    def __repr__(self):
+        tmp = "bottom entity: "
+        if self.b is not None:
+            tmp += type(bottom)
+        else:
+            tmp += "None"
+        tmp += " top entity: "
+        if self.t is not None:
+            tmp += type(top)
+        else:
+            tmp += "None"
+        return tmp
+
+
+def save_gamestate_to_file(filepath, gamestate):
+    pass

@@ -1,27 +1,7 @@
 import random
 
 from Entities import *
-from utils import Position
-
-
-class Tile(object):
-    def __init__(self, bottomObject=None, topObject=None):
-        super(Tile, self).__init__()
-        self.t = topObject
-        self.b = bottomObject
-
-    def __repr__(self):
-        tmp = "bottom entity: "
-        if self.b is not None:
-            tmp += type(bottom)
-        else:
-            tmp += "None"
-        tmp += " top entity: "
-        if self.t is not None:
-            tmp += type(top)
-        else:
-            tmp += "None"
-        return tmp
+from utils import Position, Tile
 
 
 class MapWrapper(object):
