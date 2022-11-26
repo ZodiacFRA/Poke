@@ -50,7 +50,7 @@ connection.onmessage = (e) => {
     case "init_map":
       mapJson = msg.map;
       spriteJson = msg.sprites_table;
-      // console.log(mapJson);
+      console.log(msg.sprites_table);
       drawMap();
   }
 };
@@ -61,7 +61,6 @@ var view_distance = 28;
 function drawMap() {
   var half_disp_width = viewport_shape[0] / 16 / 2;
   var half_disp_height = viewport_shape[1] / 16 / 2;
-  console.log(half_disp_width, half_disp_height)
 
   for (let y = Math.floor(player_pos[0] - half_disp_height); y < player_pos[0] + half_disp_height; y++) {
     if (y < 0 || y >= mapJson.bottom.length)
@@ -69,13 +68,10 @@ function drawMap() {
     for (let x = Math.floor(player_pos[1] - half_disp_width); x < player_pos[1] + half_disp_width; x++) {
       if (x < 0 || x >= mapJson.bottom[y].length)
         continue
-      console.log(x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16)
-      if (mapJson.bottom[y][x] === 0)
-        c.drawImage(groundImg, x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
-      if (mapJson.top[y][x] === 1)
-        c.drawImage(wallImg, x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
-      else if (mapJson.top[y][x] === 2)
-        c.drawImage(playerImg, x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
+      console.log("dlkajsld;kfj ", mapJson.bottom[y][x], mapJson.top[y][x])
+      c.drawImage(db_img[spriteJson[mapJson.bottom[y][x]]], x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
+      if (mapJson.top[y][x])
+        c.drawImage(db_img[spriteJson[mapJson.top[y][x]]], x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
     }
   }
 
