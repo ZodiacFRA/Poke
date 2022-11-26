@@ -1,7 +1,7 @@
 import random
 
 from Entities import *
-from Dijkstra import Dijkstra
+from Pathfinder import Pathfinder
 from utils import get_map_from_file
 from HelperClasses import Position, Tile
 from ErrorClasses import *
@@ -10,7 +10,7 @@ from ErrorClasses import *
 class MapWrapper(object):
     def __init__(self, map_filepath):
         super(MapWrapper, self).__init__()
-        self.pathfinder = Dijkstra(self)
+        self.pathfinder = Pathfinder(self)
         self.sprites = [
             "ground",
             "wall",

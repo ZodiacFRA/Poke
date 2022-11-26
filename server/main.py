@@ -7,18 +7,20 @@ from pprint import pprint
 # https://github.com/Pithikos/python-websocket-server#api
 from websocket_server import WebsocketServer
 
-from HelperClasses import Position
-from Map import MapWrapper
+import Global
 from Entities import *
+from Map import MapWrapper
+from IdManager import IdManager
+from HelperClasses import Position
 
 
 class App(object):
     def __init__(self):
         super(App, self).__init__()
         ### Game state
+        self.id_manager = IdManager()
+        self.living_entities = {}
         self.map_wrapper = MapWrapper("./maps/pathfinding_demo_map.txt")
-        self.players = {}
-        self.living_entities = []
 
         ### Networking
         self.incoming_messages = []
@@ -37,28 +39,29 @@ class App(object):
         self.server.run_forever(threaded=True)
         ### Game loop
         self.delta_time = 1/10  # 1/FPS
+        Global.turn_idx = 0
         self.launch()
 
     def launch(self):
         while True:
             start_time = time.time()
-            print("tick")
+            # print("tick")
             self.process_incoming_messages()
 
             self.process_living_entities()
 
             self.send_deltas()
-            # TODO: Remove this update, client should use deltas now
-            # Send update
+            # TODO: Remove this whole map update, client should use deltas now
             map = self.map_wrapper.serialize()
             message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
             self.server.send_message_to_all(json.dumps(message))
 
+            Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
 
     def process_living_entities(self):
-        for le in self.living_entities:
-            le.do_turn(self.map_wrapper, self.players, self.living_entities)
+        for id, entity in self.living_entities.items():
+            entity.do_turn(self.map_wrapper, self.living_entities)
 
     ########################################
     ### Message processing
@@ -66,8 +69,12 @@ class App(object):
     def add_new_player(self, client, msg):
         player_pos = self.map_wrapper.get_available_position()
         player_pos = Position(1, 6)
-        player = Player(player_pos, "jean michel", client["id"])
-        self.players[client["id"]] = player
+        player = Player(
+            self.id_manager.create_new_id(client["id"]),
+            player_pos,
+            "jean michel"
+        )
+        self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
 
@@ -76,14 +83,16 @@ class App(object):
         pet_position = Position(3, 7)
         print(f"Pet spawning at position {pet_position}")
         pet = Pet(
+            id=self.id_manager.create_new_id(),
             pos=pet_position,
-            owner_id=self.players[random.choice(list(self.players.values())).id].id
+            owner_id=player.id
         )
-        self.living_entities.append(pet)
+        self.living_entities[pet.id] = pet
         self.map_wrapper.add_entity(pet.pos, pet)
 
     def do_movement(self, client, msg):
-        player_pos = self.players[client["id"]].pos
+        engine_id = self.id_manager.get_engine_id(client["id"])
+        player_pos = self.living_entities[engine_id].pos
         if msg == "ArrowUp":
             new_pos = Position(player_pos.y - 1, player_pos.x)
         elif msg == "ArrowDown":
@@ -120,8 +129,11 @@ class App(object):
         """ Send map and game events deltas """
         while len(self.map_wrapper.map_events_deltas) > 0:
             delta = self.map_wrapper.map_events_deltas.pop(0)
-            print("Delta: ", end='')
+            delta["turn_idx"] = Global.turn_idx
+            # DEBUG:
+            print("\tDelta: ", end='')
             pprint(delta)
+
             self.server.send_message_to_all(json.dumps(delta))
 
     def on_client_leave(self, client, server):

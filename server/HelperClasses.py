@@ -28,14 +28,4 @@ class Tile(object):
         self.b = bottomObject
 
     def __repr__(self):
-        tmp = "bottom entity: "
-        if self.b is not None:
-            tmp += str(type(self.b))
-        else:
-            tmp += "None"
-        tmp += " top entity: "
-        if self.t is not None:
-            tmp += str(type(self.t))
-        else:
-            tmp += "None"
-        return tmp
+        return f"Tile: [{self.t} / {self.b}]"
