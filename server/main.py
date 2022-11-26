@@ -48,6 +48,7 @@ class App(object):
             self.process_living_entities()
 
             self.send_deltas()
+            # TODO: Remove this update, client should use deltas now
             # Send update
             map = self.map_wrapper.serialize()
             message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
@@ -95,11 +96,6 @@ class App(object):
         self.living_entities.append(pet)
         self.map_wrapper.add_entity(pet.pos, pet)
 
-
-        map = self.map_wrapper.serialize()
-        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
-        self.server.send_message_to_all(json.dumps(message))
-
     def do_movement(self, client, msg):
         player_pos = self.players[client["id"]].pos
         if msg == "ArrowUp":
@@ -113,15 +109,13 @@ class App(object):
         else:
             # Not a movement
             return
-
+        # TODO: Decide if we want to need to either:
+        # - check for collision before calling and move_entity() raises if movement is not possible
+        # - ignore impossible moves and make the call anyway
         is_colliding_pos = self.map_wrapper.is_colliding_pos(new_pos)
         if not is_colliding_pos:
             self.map_wrapper.move_entity(player_pos, new_pos)
             self.players[client["id"]].pos = new_pos
-
-        map = self.map_wrapper.serialize()
-        msg = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
-        self.server.send_message_to_all(json.dumps(msg))
 
     ########################################3
     ### Networking
@@ -137,10 +131,6 @@ class App(object):
     def on_client_leave(self, client, server):
         player = self.players.pop(client["id"])
         self.map_wrapper.delete_entity(player.pos)
-        # Send update
-        map = self.map_wrapper.serialize()
-        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
-        self.server.send_message_to_all(json.dumps(message))
 
     def on_msg_received(self, client, server, message):
         self.incoming_messages.append((client, message))

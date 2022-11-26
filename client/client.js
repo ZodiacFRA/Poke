@@ -44,12 +44,13 @@ connection.onerror = (error) => {
 // Each time an update is received, the onmessage event occurs
 connection.onmessage = (e) => {
   const msg = JSON.parse(e.data);
+  console.log(msg);
 
   switch (msg.type) {
     case "init_map":
       mapJson = msg.map;
       spriteJson = msg.sprites_table;
-      console.log(mapJson);
+      // console.log(mapJson);
       drawMap();
   }
 };
