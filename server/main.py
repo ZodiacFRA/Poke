@@ -137,7 +137,8 @@ class App(object):
             self.server.send_message_to_all(json.dumps(delta))
 
     def on_client_leave(self, client, server):
-        player = self.players.pop(client["id"])
+        engine_id = self.id_manager.get_engine_id(client["id"])
+        player = self.living_entities.pop(engine_id)
         self.map_wrapper.delete_entity(player.pos)
 
     def on_msg_received(self, client, server, message):

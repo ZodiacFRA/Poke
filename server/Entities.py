@@ -38,14 +38,14 @@ class LivingEntity(Entity):
         pass
 
 class Player(LivingEntity):
-    def __init__(self, id, pos, name, sprite="player_0", speed=1):
+    def __init__(self, id, pos, name, sprite="player", speed=1):
         super().__init__(id, pos, speed, sprite)
         self.collider = True
         self.name = name
         self.inventory = {}
 
 class Pet(LivingEntity):
-    def __init__(self, id, pos, owner_id, sprite="player_0", speed=1):
+    def __init__(self, id, pos, owner_id, sprite="lava_0", speed=1):
         super().__init__(id, pos, speed, sprite)
         self.collider = True
         self.owner_id = owner_id

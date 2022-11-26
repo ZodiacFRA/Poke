@@ -14,7 +14,8 @@ class MapWrapper(object):
         self.sprites = [
             "ground",
             "wall",
-            "player"
+            "player",
+            "lava"
         ]
         self.map, self.y_size, self.x_size = get_map_from_file(map_filepath)
         self.map_events_deltas = []
