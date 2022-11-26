@@ -1,7 +1,7 @@
 import random
 
 from Entities import *
-from Dijkstra import Dijkstra
+from Pathfinder import Pathfinder
 from utils import get_map_from_file
 from HelperClasses import Position, Tile
 from ErrorClasses import *
@@ -10,7 +10,7 @@ from ErrorClasses import *
 class MapWrapper(object):
     def __init__(self, map_filepath):
         super(MapWrapper, self).__init__()
-        self.pathfinder = Dijkstra(self)
+        self.pathfinder = Pathfinder(self)
         self.sprites = [
             "ground",
             "wall",
@@ -63,8 +63,15 @@ class MapWrapper(object):
         return entity
 
     def move_entity(self, from_pos, to_pos, debug=False):
-        self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
+        """ No need to check for collisions before calling this method
+        as it will be checked by add_entity()
+        Returns True if move is successful """
+        try:
+            self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
+        except CollisionError:
+            return False
         entity = self.delete_entity(from_pos)
+        return True
 
     ########################################
     ### Do not affect the map

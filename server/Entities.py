@@ -1,8 +1,15 @@
+""" For now all Entities have a position, but only the living entities get an id
+"""
+
 class Entity(object):
     def __init__(self, pos):
         self.pos = pos
         self.collider = False
         self.sprite = None
+
+    def __repr__(self):
+        # Remove the <class Entities. and the >
+        return f"{str(type(self))[17:-2]} - {self.pos}"
 
 ##############################################
 
@@ -20,44 +27,33 @@ class Wall(Entity):
 ##############################################
 
 class LivingEntity(Entity):
-    def __init__(self, pos, speed):
+    def __init__(self, id, pos, speed, sprite):
         super().__init__(pos)
+        self.id = id
         self.speed = speed
         self.turn_idx = 0
+        self.sprite = sprite
+
+    def do_turn(self, map_wrapper, living_entities):
+        pass
 
 class Player(LivingEntity):
-    def __init__(self, pos, name, id, sprite="player_0", speed=1):
-        super().__init__(pos, speed)
+    def __init__(self, id, pos, name, sprite="player_0", speed=1):
+        super().__init__(id, pos, speed, sprite)
         self.collider = True
         self.name = name
-        self.id = id
-        self.sprite = sprite
         self.inventory = {}
 
 class Pet(LivingEntity):
-    def __init__(self, pos, owner_id, sprite="player_0", speed=1):
-        super().__init__(pos, speed)
+    def __init__(self, id, pos, owner_id, sprite="player_0", speed=1):
+        super().__init__(id, pos, speed, sprite)
         self.collider = True
         self.owner_id = owner_id
-        self.sprite = sprite
-        ### Pathfinding
-        self.target_path = None
-        self.last_pathfinding_turn_idx = -1
-        self.pathfinding_turns_delta = 5
 
-    def do_turn(self, map_wrapper, players, living_entities):
-        if self.target_path is None or self.turn_idx - self.last_pathfinding_turn_idx > self.pathfinding_turns_delta:
-            owner_pos = players[self.owner_id].pos
-            target_pos = owner_pos  # TODO: Add variation
-            self.target_path = map_wrapper.pathfinder.get_shortest_path(
-                from_pos=self.pos, target_pos=target_pos
-            )
-            self.target_path.pop(-1)
-
-            self.last_pathfinding_turn_idx = self.turn_idx
-
-        if len(self.target_path) > 0:
-            map_wrapper.move_entity(self.pos, self.target_path[0].pos)
-            # print(f"moved pet from {self.pos} to {self.target_path[0].pos}")
-            self.target_path.pop(0)
-        self.turn_idx += 1
+    def do_turn(self, map_wrapper, living_entities):
+        owner_pos = living_entities[self.owner_id].pos
+        target_pos = owner_pos  # TODO: Add variation
+        next_move = map_wrapper.pathfinder.get_next_move(self, target_pos)
+        # print("next move", next_move)
+        if next_move is not None:
+            map_wrapper.move_entity(self.pos, next_move)

@@ -41,13 +41,13 @@ class Dijkstra(object):
         if current_node.pos == self.target_pos:
             return 1
         for delta in self.deltas:
-            tmpPos = current_node.pos + delta
+            tmp_pos = current_node.pos + delta
             # If is a valid position (is a node)
-            if not self.map_wrapper.is_colliding_pos(tmpPos):
-                tmpName = tmpPos.__repr__()
+            if not self.map_wrapper.is_colliding_pos(tmp_pos):
+                tmpName = tmp_pos.__repr__()
                 # If position has never been visited, create the node object
                 if tmpName not in self.to_do_nodes and tmpName not in self.done_nodes:
-                    newNode = Node(tmpPos, distance + 1)
+                    newNode = Node(tmp_pos, distance + 1)
                     # Add to todo, we'll do it later
                     self.to_do_nodes[tmpName] = newNode
                 # If the node exists
@@ -60,10 +60,10 @@ class Dijkstra(object):
                         newNode.distance = distance + 1
                 current_node.neighbors.append(newNode)
             # We found it but the target tile is colliding (Workaround)
-            if tmpPos == self.target_pos:
-                newNode = Node(tmpPos, distance + 1)
+            if tmp_pos == self.target_pos:
+                newNode = Node(tmp_pos, distance + 1)
                 current_node.neighbors.append(newNode)
-                self.to_do_nodes[tmpPos.__repr__()] = newNode
+                self.to_do_nodes[tmp_pos.__repr__()] = newNode
         return 0
 
     def compute(self):
@@ -85,7 +85,7 @@ class Dijkstra(object):
                     min_neighbor = min(min_neighbor.neighbors, key=lambda x: x.distance)
                     res.append(min_neighbor)
                 res.reverse()
-                return res
+                return [node.pos for node in res]
             elif flag == 2:
                 return []
             previous_node = node[1]
