@@ -15,7 +15,7 @@ class MapWrapper(object):
             "ground",
             "wall",
             "player",
-            "lava"
+            "lava_0"
         ]
         self.map, self.y_size, self.x_size = get_map_from_file(map_filepath)
         self.map_events_deltas = []
