@@ -131,8 +131,8 @@ class App(object):
             delta = self.map_wrapper.map_events_deltas.pop(0)
             delta["turn_idx"] = Global.turn_idx
             # DEBUG:
-            print("\tDelta: ", end='')
-            pprint(delta)
+            # print("\tDelta: ", end='')
+            # pprint(delta)
 
             self.server.send_message_to_all(json.dumps(delta))
 
