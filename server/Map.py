@@ -2,7 +2,9 @@ import random
 
 from Entities import *
 from Dijkstra import Dijkstra
-from utils import Position, Tile
+from utils import get_map_from_file
+from HelperClasses import Position, Tile
+from ErrorClasses import *
 
 
 class MapWrapper(object):
@@ -14,31 +16,64 @@ class MapWrapper(object):
             "wall",
             "player_0"
         ]
-        self.map = []
-        self.y_size = -1
-        self.x_size = -1
-        self.load_map(map_filepath)
+        self.map, self.y_size, self.x_size = get_map_from_file(map_filepath)
+        self.map_events_deltas = []
+
+    ########################################
+    ### Map Modifiers
+    # Those functions affect the entities positions
+    # (both in the map and in the internal pos)
+    #
+    # Only top entities can be affected (added / moved / deleted)
+    # as we consider bottom entities to be fixed by map creation (for now)
+    #
+    # Those functions also need to keep track of their effect in self.map_events_deltas,
+    # in order to build the map_events_deltas to be sent to the clients
+    #
+    # To sum it up, each of those functions NEEDS to do 3 things:
+    # - Action in the self.map object
+    # - Update the entity's own position object
+    # - Add the action to the self.delta list
 
     def add_entity(self, pos, entity):
+        if entity is None:
+            print(f"""[-] - Map system - Empty entity won't be added at {pos}""")
+            return
+        if self.is_colliding_pos(pos):
+            print(f"""[-] - Map system - Could not add {entity} at {pos}, colliding""")
+            raise CollisionError(pos)
         self.map[pos.y][pos.x].t = entity
+        entity.pos = pos
+        self.map_events_deltas.append({
+            "type": "add_entity",
+            "pos": str(pos),
+            "entity": self.sprites.index(entity.sprite)
+        })
 
-    def remove_entity(self, pos):
-        """ Only removes the top entity, as we don't want any holes in the ground
-        Use the swap() method to change bottom entities """
-        tmp = self.map[pos.y][pos.x].t
+    def delete_entity(self, pos, check_collision_before_delete=True):
+        if check_collision_before_delete and not self.is_colliding_pos(pos):
+            print(f"""[-] - Map system - No entity to remove at {pos}""")
+            return
+        entity = self.map[pos.y][pos.x].t
         self.map[pos.y][pos.x].t = None
-        return tmp
-
-    def get(self, pos):
-        return self.map[pos.y][pos.x]
+        self.map_events_deltas.append({
+            "type": "delete_entity",
+            "pos": str(pos),
+        })
+        return entity
 
     def move_entity(self, from_pos, to_pos, debug=False):
-        if debug:
-            print(f"""[ ] - Before moving - from {from_pos} ({self.get(from_pos)}) to {to_pos}  ({self.get(to_pos)})""")
-        self.map[to_pos.y][to_pos.x].t = self.map[from_pos.y][from_pos.x].t
-        self.map[from_pos.y][from_pos.x].t = None
-        if debug:
-            print(f"""[ ] - After moving - from {from_pos} ({self.get(from_pos)}) to {to_pos}  ({self.get(to_pos)})""")
+        self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
+        entity = self.delete_entity(from_pos)
+
+    ########################################
+    ### Do not affect the map
+
+    def get(self, pos, top=True):
+        if top:
+            return self.map[pos.y][pos.x].t
+        else:
+            return self.map[pos.y][pos.x].b
 
     def is_colliding_pos(self, pos):
         # OOB -> colliding
@@ -69,28 +104,6 @@ class MapWrapper(object):
             if not self.is_colliding_pos(pos):
                 return pos
         return None
-
-    def load_map(self, map_filepath):
-        with open(map_filepath, "r") as f:
-            data = f.read().split('\n')
-            data = list(filter(None, data))
-
-        self.y_size = len(data)
-        self.x_size = max(len(x) for x in data)
-        print(f"[ ] - Map loader: max height detected: {self.y_size}")
-        print(f"[ ] - Map loader: max width detected: {self.x_size}")
-        for y_idx, line in enumerate(data):
-            map_line = []
-            for x_idx, char in enumerate(line):
-                if char == "":
-                    map_line.append(Tile())
-                elif char == "0":
-                    map_line.append(Tile(Ground()))
-                elif char == "1":
-                    map_line.append(Tile(Ground(), Wall()))
-                elif char == "2":
-                    map_line.append(Tile(Ground(), Player()))
-            self.map.append(map_line)
 
     def serialize(self):
         """ Network serialize the whole map"""

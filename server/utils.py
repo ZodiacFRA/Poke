@@ -1,45 +1,40 @@
-class Position(object):
-    def __init__(self, y, x):
-        super(Position, self).__init__()
-        self.y = y
-        self.x = x
-
-    def __add__(self, other):
-        return Position(self.y + other.y, self.x + other.x)
-
-    def __eq__(self, other):
-        if self.y == other.y and self.x == other.x:
-            return True
-        return False
-
-    def __ne__(self, other):
-        if self.y == other.y and self.x == other.x:
-            return False
-        return True
-
-    def __repr__(self):
-        return f"y:{self.y}/x:{self.x}"
+from Entities import *
+from HelperClasses import Tile, Position
 
 
-class Tile(object):
-    def __init__(self, bottomObject=None, topObject=None):
-        super(Tile, self).__init__()
-        self.t = topObject
-        self.b = bottomObject
+def get_map_from_file(map_filepath):
+    map = []
+    with open(map_filepath, "r") as f:
+        data = f.read().split('\n')
+        data = list(filter(None, data))
 
-    def __repr__(self):
-        tmp = "bottom entity: "
-        if self.b is not None:
-            tmp += str(type(self.b))
-        else:
-            tmp += "None"
-        tmp += " top entity: "
-        if self.t is not None:
-            tmp += str(type(self.t))
-        else:
-            tmp += "None"
-        return tmp
+    y_size = len(data)
+    x_size = max(len(x) for x in data)
+    print(f"[ ] - Map loader: max height detected: {y_size}")
+    print(f"[ ] - Map loader: max width detected: {x_size}")
+    for y_idx, line in enumerate(data):
+        map_line = []
+        for x_idx, char in enumerate(line):
+            if char == "":
+                map_line.append(Tile())
+            elif char == "0":
+                map_line.append(Tile(
+                    Ground(Position(y_idx, x_idx))
+                ))
+            elif char == "1":
+                map_line.append(Tile(
+                    Ground(Position(y_idx, x_idx)),
+                    Wall(Position(y_idx, x_idx))
+                ))
+            elif char == "2":
+                map_line.append(Tile(
+                    Ground(Position(y_idx, x_idx)),
+                    Player(Position(y_idx, x_idx))
+                ))
+        map.append(map_line)
+    return map, y_size, x_size
 
 
 def save_gamestate_to_file(filepath, gamestate):
+    """ TODO """
     pass

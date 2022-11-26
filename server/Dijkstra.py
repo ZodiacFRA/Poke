@@ -2,7 +2,7 @@ import copy
 import collections
 from operator import attrgetter
 
-from utils import Position
+from HelperClasses import Position
 
 
 class Node(object):
@@ -59,6 +59,11 @@ class Dijkstra(object):
                     if distance + 1 < newNode.distance:
                         newNode.distance = distance + 1
                 current_node.neighbors.append(newNode)
+            # We found it but the target tile is colliding (Workaround)
+            if tmpPos == self.target_pos:
+                newNode = Node(tmpPos, distance + 1)
+                current_node.neighbors.append(newNode)
+                self.to_do_nodes[tmpPos.__repr__()] = newNode
         return 0
 
     def compute(self):
@@ -75,7 +80,7 @@ class Dijkstra(object):
                 res = [node[1], previous_node]
                 tmp = None
                 min_neighbor = previous_node
-                while min_neighbor.distance > 0:
+                while min_neighbor.distance > 1:
                     tmp = min_neighbor
                     min_neighbor = min(min_neighbor.neighbors, key=lambda x: x.distance)
                     res.append(min_neighbor)

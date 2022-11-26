@@ -7,7 +7,7 @@ from pprint import pprint
 # https://github.com/Pithikos/python-websocket-server#api
 from websocket_server import WebsocketServer
 
-from utils import Position
+from HelperClasses import Position
 from Map import MapWrapper
 from Entities import *
 
@@ -17,10 +17,6 @@ class App(object):
         super(App, self).__init__()
         ### Game state
         self.map_wrapper = MapWrapper("./maps/pathfinding_demo_map.txt")
-        # print(self.pathfinder.get_shortest_path(
-        #     from_pos=Position(3, 1),
-        #     target_pos=Position(3, 7))
-        # )
         self.players = {}
         self.living_entities = []
 
@@ -40,7 +36,7 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1
+        self.delta_time = 0.1
         self.launch()
 
     def launch(self):
@@ -48,7 +44,15 @@ class App(object):
             start_time = time.time()
             print("tick")
             self.process_incoming_messages()
-            # self.process_living_entities()
+
+            self.process_living_entities()
+
+            self.send_deltas()
+            # Send update
+            map = self.map_wrapper.serialize()
+            message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
+            self.server.send_message_to_all(json.dumps(message))
+
             time.sleep(self.delta_time - (time.time() - start_time))
 
     def process_incoming_messages(self):
@@ -80,7 +84,7 @@ class App(object):
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
 
-        ##### TMP
+        ##### TMP, give the player a pet
         pet_position = self.map_wrapper.get_available_position()
         pet_position = Position(3, 7)
         print(f"Pet spawning at position {pet_position}")
@@ -122,9 +126,17 @@ class App(object):
     ########################################3
     ### Networking
 
+    def send_deltas(self):
+        """ Send map and game events deltas """
+        while len(self.map_wrapper.map_events_deltas) > 0:
+            delta = self.map_wrapper.map_events_deltas.pop(0)
+            print("Delta: ", end='')
+            pprint(delta)
+            self.server.send_message_to_all(json.dumps(delta))
+
     def on_client_leave(self, client, server):
         player = self.players.pop(client["id"])
-        self.map_wrapper.remove_entity(player.pos)
+        self.map_wrapper.delete_entity(player.pos)
         # Send update
         map = self.map_wrapper.serialize()
         message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
