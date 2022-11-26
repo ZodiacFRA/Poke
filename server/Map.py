@@ -41,7 +41,6 @@ class MapWrapper(object):
             print(f"""[-] - Map system - Empty entity won't be added at {pos}""")
             return
         if self.is_colliding_pos(pos):
-            print(f"""[-] - Map system - Could not add {entity} at {pos}, colliding""")
             raise CollisionError(pos)
         self.map[pos.y][pos.x].t = entity
         entity.pos = pos
@@ -70,6 +69,8 @@ class MapWrapper(object):
         try:
             self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
         except CollisionError:
+            if debug:
+                print(f"""[ ] - Map system - Could not move {self.map[from_pos.y][from_pos.x].t} to {to_pos}, colliding""")
             return False
         entity = self.delete_entity(from_pos)
         return True
