@@ -10,9 +10,9 @@ const mapWidth = 20;
 const mapHeight = 20;
 
 // Get and resize canvas
-const canvas = document.querySelector("canvas");
-canvas.width = mapWidth * pixelSize;
-canvas.height = mapHeight * pixelSize;
+const canvas = document.getElementById("viewport");
+// canvas.width = mapWidth * pixelSize;
+// canvas.height = mapHeight * pixelSize;
 
 // Return a drawing context on the canvas
 const c = canvas.getContext("2d");
@@ -44,7 +44,7 @@ connection.onerror = (error) => {
 // Each time an update is received, the onmessage event occurs
 connection.onmessage = (e) => {
   const msg = JSON.parse(e.data);
-  console.log(msg);
+  // console.log(msg);
 
   switch (msg.type) {
     case "init_map":
@@ -55,15 +55,29 @@ connection.onmessage = (e) => {
   }
 };
 
+var player_pos = [2,2];
+var view_distance = 28;
+
 function drawMap() {
-  for (let y = 0; y < mapJson.bottom.length; y++) {
-    for (let x = 0; x < mapJson.bottom[y].length; x++) {
+  var half_disp_width = viewport_shape[0] / 16 / 2;
+  var half_disp_height = viewport_shape[1] / 16 / 2;
+  console.log(half_disp_width, half_disp_height)
+
+  for (let y = Math.floor(player_pos[0] - half_disp_height); y < player_pos[0] + half_disp_height; y++) {
+    if (y < 0 || y >= mapJson.bottom.length)
+      continue
+    for (let x = Math.floor(player_pos[1] - half_disp_width); x < player_pos[1] + half_disp_width; x++) {
+      if (x < 0 || x >= mapJson.bottom[y].length)
+        continue
+      console.log(x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16)
       if (mapJson.bottom[y][x] === 0)
-        c.drawImage(groundImg, x * pixelSize, y * pixelSize);
+        c.drawImage(groundImg, x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
       if (mapJson.top[y][x] === 1)
-        c.drawImage(wallImg, x * pixelSize, y * pixelSize);
+        c.drawImage(wallImg, x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
       else if (mapJson.top[y][x] === 2)
-        c.drawImage(playerImg, x * pixelSize, y * pixelSize);
+        c.drawImage(playerImg, x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
     }
   }
+
+  console.log("\n\n")
 }
