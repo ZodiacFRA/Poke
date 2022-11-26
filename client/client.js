@@ -44,7 +44,7 @@ connection.onerror = (error) => {
 // Each time an update is received, the onmessage event occurs
 connection.onmessage = (e) => {
   const msg = JSON.parse(e.data);
-  // console.log(msg);
+  console.log(msg);
 
   switch (msg.type) {
     case "init_map":
@@ -68,7 +68,7 @@ function drawMap() {
     for (let x = Math.floor(player_pos[1] - half_disp_width); x < player_pos[1] + half_disp_width; x++) {
       if (x < 0 || x >= mapJson.bottom[y].length)
         continue
-      console.log("dlkajsld;kfj ", mapJson.bottom[y][x], mapJson.top[y][x])
+      // console.log("dlkajsld;kfj ", mapJson.bottom[y][x], mapJson.top[y][x])
       c.drawImage(db_img[spriteJson[mapJson.bottom[y][x]]], x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
       if (mapJson.top[y][x])
         c.drawImage(db_img[spriteJson[mapJson.top[y][x]]], x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
