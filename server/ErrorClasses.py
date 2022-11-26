@@ -7,6 +7,3 @@ class MapError(Exception):
 
 class CollisionError(MapError):
     pass
-
-class EmptyEntityError(MapError):
-    pass

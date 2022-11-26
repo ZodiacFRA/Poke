@@ -63,8 +63,15 @@ class MapWrapper(object):
         return entity
 
     def move_entity(self, from_pos, to_pos, debug=False):
-        self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
+        """ No need to check for collisions before calling this method
+        as it will be checked by add_entity()
+        Returns True if move is successful """
+        try:
+            self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
+        except CollisionError:
+            return False
         entity = self.delete_entity(from_pos)
+        return True
 
     ########################################
     ### Do not affect the map

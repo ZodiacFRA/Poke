@@ -36,7 +36,7 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 0.1
+        self.delta_time = 1/10  # 1/FPS
         self.launch()
 
     def launch(self):
@@ -55,20 +55,6 @@ class App(object):
             self.server.send_message_to_all(json.dumps(message))
 
             time.sleep(self.delta_time - (time.time() - start_time))
-
-    def process_incoming_messages(self):
-        while len(self.incoming_messages) > 0:
-            client, msg = self.incoming_messages.pop()
-            try:
-                msg = json.loads(msg)
-            except json.decoder.JSONDecodeError as e:
-                print(f"""[-] - Json module: Could not decode "{msg}" """)
-            else:
-                func = self.message_types_functions.get(msg["msg_type"])
-                if func is None:
-                    print(f"""[-] - Invalid message type: {msg["msg_type"]} in {msg}""")
-                else:
-                    func(client, msg)
 
     def process_living_entities(self):
         for le in self.living_entities:
@@ -109,16 +95,26 @@ class App(object):
         else:
             # Not a movement
             return
-        # TODO: Decide if we want to need to either:
-        # - check for collision before calling and move_entity() raises if movement is not possible
-        # - ignore impossible moves and make the call anyway
-        is_colliding_pos = self.map_wrapper.is_colliding_pos(new_pos)
-        if not is_colliding_pos:
-            self.map_wrapper.move_entity(player_pos, new_pos)
-            self.players[client["id"]].pos = new_pos
+        # No need to check for collisions
+        # we just ignore if the move isn't possible
+        self.map_wrapper.move_entity(player_pos, new_pos)
 
     ########################################3
     ### Networking
+
+    def process_incoming_messages(self):
+        while len(self.incoming_messages) > 0:
+            client, msg = self.incoming_messages.pop()
+            try:
+                msg = json.loads(msg)
+            except json.decoder.JSONDecodeError as e:
+                print(f"""[-] - Json module: Could not decode "{msg}" """)
+            else:
+                func = self.message_types_functions.get(msg["msg_type"])
+                if func is None:
+                    print(f"""[-] - Invalid message type: {msg["msg_type"]} in {msg}""")
+                else:
+                    func(client, msg)
 
     def send_deltas(self):
         """ Send map and game events deltas """
