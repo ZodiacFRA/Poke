@@ -25,15 +25,12 @@ class App(object):
         ### Networking
         self.incoming_messages = []
         self.message_types_functions = {
-            "enter_game": self.add_new_player,
+            "create_player": self.add_new_player,
             "key_input": self.do_movement
         }
         self.delta_messages = []
 
         self.server = WebsocketServer(host='localhost', port=50000, loglevel=logging.INFO)
-        # TODO: remove set_fn_new_client as this will be handled by a specific message
-        # when the client is ready
-        self.server.set_fn_new_client(self.add_new_player)
         self.server.set_fn_client_left(self.on_client_leave)
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
@@ -69,13 +66,13 @@ class App(object):
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,
-            "jean michel"
+            msg["player_name"]
         )
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
 
-        ##### TMP, give the player a pet
+        ##### TODO, give the player a pet
         pet_position = self.map_wrapper.get_available_position()
         # pet_position = Position(3, 3)  # DEBUG:
         print(f"Pet spawning at position {pet_position}")
@@ -90,13 +87,13 @@ class App(object):
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
         player_pos = self.living_entities[engine_id].pos
-        if msg == "ArrowUp":
+        if msg["key"] == "ArrowUp":
             new_pos = Position(player_pos.y - 1, player_pos.x)
-        elif msg == "ArrowDown":
+        elif msg["key"] == "ArrowDown":
             new_pos = Position(player_pos.y + 1, player_pos.x)
-        elif msg == "ArrowLeft":
+        elif msg["key"] == "ArrowLeft":
             new_pos = Position(player_pos.y, player_pos.x - 1)
-        elif msg == "ArrowRight":
+        elif msg["key"] == "ArrowRight":
             new_pos = Position(player_pos.y, player_pos.x + 1)
         else:
             # Not a movement
@@ -150,8 +147,6 @@ class App(object):
 
     def on_msg_received(self, client, server, message):
         self.incoming_messages.append((client, message))
-        if message[:5] == "Arrow":
-            self.do_movement(client, message)
 
 
 if __name__ == '__main__':
