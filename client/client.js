@@ -4,8 +4,8 @@ const imagesPath = [
   "img/ground.png",
   "img/wall.png",
   "img/pet.png",
-  "img/scientist.png",
   "img/player.png",
+  "img/scientist.png",
 ];
 const URL = "localhost";
 const PORT = 50000;
