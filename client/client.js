@@ -42,12 +42,13 @@ class image {
 
 const keyboard = {
   listen: function () {
-    window.addEventListener("keypress", (e) => {
+    window.addEventListener("keydown", (e) => {
       server.msgToServer = {
         msg_type: "key_event",
         key: e.key,
       };
-      server.connection.send(server.msgToServer);
+      console.log(server.msgToServer);
+      server.connection.send(JSON.stringify(server.msgToServer));
     });
   },
 };
