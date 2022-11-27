@@ -69,9 +69,9 @@ function drawMap() {
       if (x < 0 || x >= mapJson.bottom[y].length)
         continue
       // console.log("dlkajsld;kfj ", mapJson.bottom[y][x], mapJson.top[y][x])
-      c.drawImage(db_img[spriteJson[mapJson.bottom[y][x]]], x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
+      c.drawImage(db_img[spriteJson[mapJson.bottom[y][x]]], x * pixelSize - pixelSize / 2 + half_disp_width * 16, y * pixelSize - pixelSize / 2 + half_disp_height * 16);
       if (mapJson.top[y][x])
-        c.drawImage(db_img[spriteJson[mapJson.top[y][x]]], x * pixelSize + half_disp_width * 16, y * pixelSize + half_disp_height * 16);
+        c.drawImage(db_img[spriteJson[mapJson.top[y][x]]], x * pixelSize - pixelSize / 2 + half_disp_width * 16, y * pixelSize - pixelSize / 2 + half_disp_height * 16);
     }
   }
 
