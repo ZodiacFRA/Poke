@@ -23,7 +23,7 @@ const map = {
   spritesTab: null,
   playerMoved: true,
 
-  movePlayer: function() {
+  movePlayer: function () {
     this.playerMoved = false;
     for (let i = 0; i < display.tileSize; i++) {
       //
@@ -41,11 +41,11 @@ class image {
 }
 
 const keyboard = {
-  listen: function() {
+  listen: function () {
     window.addEventListener("key_input", (e) => {
       server.msgToServer = {
         msg_type: "key_event",
-        key: e.key
+        key: e.key,
       };
       server.connection.send(server.msgToServer);
     });
@@ -56,18 +56,17 @@ const server = {
   connection: new WebSocket("ws://" + URL + ":" + PORT),
   msgFromServer: null,
   msgToServer: null,
-  initMap: false,
 
-  connect: function() {
+  connect: function () {
     this.msgToServer = {
       msg_type: "create_player",
-      player_name: PLAYER_ID
+      player_name: PLAYER_ID,
     };
-    this.connection.onopen = () => this.connection.send("matthieu");
-    // this.connection.send(JSON.stringify(this.msgToServer));
+    this.connection.onopen = () =>
+      this.connection.send(JSON.stringify(this.msgToServer));
   },
 
-  listen: function() {
+  listen: function () {
     this.connect();
 
     this.connection.onerror = (error) => {
@@ -83,17 +82,14 @@ const server = {
     };
   },
 
-  parseMsg: function() {
+  parseMsg: function () {
     switch (this.msgFromServer.type) {
       case "init_map":
-        if (this.initMap == false) {
-          this.initMap = true;
-          map.content = this.msgFromServer.map;
-          map.height = map.content.bottom.length;
-          map.width = map.content.bottom[0].length;
-          map.spritesTab = this.msgFromServer.sprites_table;
-          display.drawMap();
-        }
+        map.content = this.msgFromServer.map;
+        map.height = map.content.bottom.length;
+        map.width = map.content.bottom[0].length;
+        map.spritesTab = this.msgFromServer.sprites_table;
+        display.drawMap();
     }
   },
 };
@@ -103,30 +99,30 @@ const display = {
   ctx: null,
   images: [],
 
-  init: function() {
+  init: function () {
     this.setViewport();
     this.setContext();
     this.loadImages();
   },
 
-  setViewport: function() {
+  setViewport: function () {
     this.viewport = document.getElementById("viewport");
     this.viewport.width = SCREEN_WIDTH;
     this.viewport.height = SCREEN_HEIGHT;
   },
 
-  setContext: function() {
+  setContext: function () {
     this.ctx = this.viewport.getContext("2d");
   },
 
-  loadImages: function() {
+  loadImages: function () {
     for (var i = 0; i < imagesPath.length; i++) {
       this.images.push(new image(imagesPath[i]));
     }
   },
 
   // NEED TP INSERT SEUB FUNCTION INSTEAD
-  drawMap: function() {
+  drawMap: function () {
     let i = 0;
     for (var y = 0; y < map.height; y++) {
       for (var x = 0; x < map.width; x++) {
