@@ -3,9 +3,9 @@
 const imagesPath = [
   "img/ground.png",
   "img/wall.png",
-  "img/player.png",
   "img/pet.png",
   "img/scientist.png",
+  "img/player.png",
 ];
 const URL = "localhost";
 const PORT = 50000;
@@ -135,10 +135,12 @@ const display = {
       for (var x = 0; x < map.width; x++) {
         if (map.content.bottom[y][x] === 0)
           this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
+        if (map.content.top[y][x] == 1)
+          this.ctx.drawImage(this.images[1].obj, x * TILE_SIZE, y * TILE_SIZE);
         if (map.content.top[y][x] == 2)
-          this.ctx.drawImage(this.images[3].obj, x * TILE_SIZE, y * TILE_SIZE);
+          this.ctx.drawImage(this.images[2].obj, x * TILE_SIZE, y * TILE_SIZE);
         else if (map.content.top[y][x] == 3)
-          this.ctx.drawImage(this.images[4].obj, x * TILE_SIZE, y * TILE_SIZE);
+          this.ctx.drawImage(this.images[3].obj, x * TILE_SIZE, y * TILE_SIZE);
       }
     }
   },
