@@ -44,7 +44,7 @@ const keyboard = {
   listen: function () {
     window.addEventListener("keydown", (e) => {
       server.msgToServer = {
-        msg_type: "key_event",
+        msg_type: "key_input",
         key: e.key,
       };
       console.log(server.msgToServer);
