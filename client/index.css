@@ -1,15 +1,16 @@
-html, body, #viewport {
+html,
+body,
+#viewport {
   padding: 0;
   margin: 0;
   border: 0;
   background-color: rgb(33, 31, 31);
-  height: 100vh;
-  width: 100vw;
+  /* height: 100vh; */
+  /* width: 100vw; */
 }
 html {
   overflow: hidden;
 }
-
 
 /* body {
   background-color: rgb(33, 31, 31);
