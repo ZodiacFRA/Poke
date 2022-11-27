@@ -26,7 +26,6 @@ const map = {
   content: null,
   width: 0,
   height: null,
-  spritesTab: null,
   playerMoved: true,
 
   movePlayer: function () {
@@ -95,7 +94,6 @@ const server = {
         map.content = this.msgFromServer.map;
         map.height = map.content.bottom.length;
         map.width = map.content.bottom[0].length;
-        map.spritesTab = this.msgFromServer.sprites_table;
         display.setViewport(map.width, map.height);
         display.drawMap();
     }
