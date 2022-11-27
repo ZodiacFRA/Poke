@@ -35,7 +35,7 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1/1  # 1/FPS
+        self.delta_time = 1/24  # 1/FPS
         Global.turn_idx = 0
         self.launch()
 
@@ -96,8 +96,7 @@ class App(object):
             new_pos = Position(player_pos.y, player_pos.x - 1)
         elif msg["key"] == "ArrowRight":
             new_pos = Position(player_pos.y, player_pos.x + 1)
-        else:
-            # Not a movement
+        else:  # Not a movement
             return
         # No need to check for collisions
         # we just ignore if the move isn't possible
@@ -125,9 +124,6 @@ class App(object):
         while len(self.map_wrapper.map_events_deltas) > 0:
             delta = self.map_wrapper.map_events_deltas.pop(0)
             delta["turn_idx"] = Global.turn_idx
-            # DEBUG:
-            # print("\tDelta: ", end='')
-            # pprint(delta)
             self.server.send_message_to_all(json.dumps(delta))
 
     def send_full_map(self):
@@ -150,6 +146,7 @@ class App(object):
         self.map_wrapper.delete_entity(player.pos)
 
     def on_msg_received(self, client, server, message):
+        # print(message)  # DEBUG:
         self.incoming_messages.append((client, message))
 
 
