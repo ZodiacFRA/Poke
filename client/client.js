@@ -8,30 +8,14 @@ const SCREEN_HEIGHT = 480;
 const PLAYER_ID = "UnDesSix";
 const TILE_SIZE = 16;
 
-const keyboard = {
-  listen: function () {
-    window.addEventListener("keydown", (e) => {
-      server.msgToServer = { type: "key_event", content: "e.key" };
-      server.connection.send(server.msgToServer);
-    });
-  },
-};
-
-class image {
-  constructor(path) {
-    this.obj = new Image();
-    this.obj.src = path;
-    if (obj.height > TILE_SIZE || obj.width > TILE_SIZE)
-      this.isForeground = true;
-  }
-}
-
+// WORK IN PROGRESS
 const character = {
   image: () => {
     return image();
   },
 };
 
+// WORK IN PROGRESS
 const game = {
   map: {
     content: null,
@@ -46,6 +30,24 @@ const game = {
     for (let i = 0; i < display.tileSize; i++) {
       //
     }
+  },
+};
+
+class image {
+  constructor(path) {
+    this.obj = new Image();
+    this.obj.src = path;
+    if (obj.height > TILE_SIZE || obj.width > TILE_SIZE)
+      this.isForeground = true;
+  }
+}
+
+const keyboard = {
+  listen: function () {
+    window.addEventListener("keydown", (e) => {
+      server.msgToServer = { type: "key_event", content: e.key };
+      server.connection.send(server.msgToServer);
+    });
   },
 };
 
