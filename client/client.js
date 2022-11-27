@@ -76,7 +76,7 @@ const server = {
     this.connection.onmessage = (event) => {
       try {
         this.msgFromServer = JSON.parse(event.data);
-        // console.log(this.msgFromServer);
+        console.log(this.msgFromServer);
         this.parseMsg();
       } catch (exception) {}
     };
@@ -128,7 +128,7 @@ const display = {
       for (var x = 0; x < map.width; x++) {
         if (map.content.bottom[y][x] === 0)
           this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
-        if (map.content.top[y][x] === 1)
+        if (map.content.top[y][x])
           this.ctx.drawImage(this.images[1].obj, x * TILE_SIZE, y * TILE_SIZE);
       }
     }
