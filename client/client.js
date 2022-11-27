@@ -6,7 +6,7 @@ const PORT = 50000;
 const SCREEN_WIDTH = 720;
 const SCREEN_HEIGHT = 480;
 const PLAYER_ID = "UnDesSix";
-const TILE_SIZE = 16;
+const TILE_SIZE = 32;
 
 // WORK IN PROGRESS
 const character = {
@@ -16,16 +16,14 @@ const character = {
 };
 
 // WORK IN PROGRESS
-const game = {
-  map: {
-    content: null,
-    width: 0,
-    height: null,
-    sprites: null,
-  },
+const map = {
+  content: null,
+  width: 0,
+  height: null,
+  spritesTab: null,
   playerMoved: true,
 
-  movePlayer: function() {
+  movePlayer: function () {
     this.playerMoved = false;
     for (let i = 0; i < display.tileSize; i++) {
       //
@@ -37,19 +35,16 @@ class image {
   constructor(path) {
     this.obj = new Image();
     this.obj.src = path;
-    if (obj.height > TILE_SIZE || obj.width > TILE_SIZE)
+    if (this.obj.height > TILE_SIZE || this.obj.width > TILE_SIZE)
       this.isForeground = true;
   }
 }
 
 const keyboard = {
-  listen: function() {
+  listen: function () {
     window.addEventListener("keydown", (e) => {
-      server.msgToServer = {
-        msg_type: "key_input",
-        key: e.key
-      };
-      server.connection.send(JSON.stringify(server.msgToServer));
+      server.msgToServer = { type: "key_event", content: e.key };
+      server.connection.send(server.msgToServer);
     });
   },
 };
@@ -58,17 +53,15 @@ const server = {
   connection: new WebSocket("ws://" + URL + ":" + PORT),
   msgFromServer: null,
   msgToServer: null,
+  initMap: false,
 
-  connect: function() {
-    this.msgToServer = {
-      msg_type: "create_player",
-      player_name: PLAYER_ID
-    };
-    this.connection.onopen = () =>
-      this.connection.send(JSON.stringify(this.msgToServer));
+  connect: function () {
+    this.msgToServer = { type: "new_connection", content: PLAYER_ID };
+    this.connection.onopen = () => this.connection.send("matthieu");
+    // this.connection.send(JSON.stringify(this.msgToServer));
   },
 
-  listen: function() {
+  listen: function () {
     this.connect();
 
     this.connection.onerror = (error) => {
@@ -78,19 +71,23 @@ const server = {
     this.connection.onmessage = (event) => {
       try {
         this.msgFromServer = JSON.parse(event.data);
+        // console.log(this.msgFromServer);
         this.parseMsg();
       } catch (exception) {}
     };
   },
 
-  parseMsg: function() {
+  parseMsg: function () {
     switch (this.msgFromServer.type) {
       case "init_map":
-        game.map.content = this.msgFromServer.map;
-        game.map.height = game.map.content.bottom.length;
-        game.map.width = game.map.content.bottom[0].length;
-        game.map.sprites = this.msgFromServer.sprites_table;
-        display.drawMap();
+        if (this.initMap == false) {
+          this.initMap = true;
+          map.content = this.msgFromServer.map;
+          map.height = map.content.bottom.length;
+          map.width = map.content.bottom[0].length;
+          map.spritesTab = this.msgFromServer.sprites_table;
+          display.drawMap();
+        }
     }
   },
 };
@@ -100,38 +97,37 @@ const display = {
   ctx: null,
   images: [],
 
-  init: function() {
+  init: function () {
     this.setViewport();
     this.setContext();
     this.loadImages();
   },
 
-  setViewport: function() {
+  setViewport: function () {
     this.viewport = document.getElementById("viewport");
     this.viewport.width = SCREEN_WIDTH;
     this.viewport.height = SCREEN_HEIGHT;
   },
 
-  setContext: function() {
+  setContext: function () {
     this.ctx = this.viewport.getContext("2d");
   },
 
-  loadImages: function() {
+  loadImages: function () {
     for (var i = 0; i < imagesPath.length; i++) {
-      this.images.push(new Image());
-      this.images[i].src = imagesPath[i];
+      this.images.push(new image(imagesPath[i]));
     }
   },
 
   // NEED TP INSERT SEUB FUNCTION INSTEAD
-  drawMap: function() {
-    for (var y = 0; y < game.map.height; y++) {
-      for (var x = 0; x < game.map.width; x++) {
-        // DRAW BACKGROUND
-        this.ctx.drawImage(this.images[1], x * TILE_SIZE, y * TILE_SIZE);
-        // DRAW OBJECT
-
-        // DRAW FOREGROUND
+  drawMap: function () {
+    let i = 0;
+    for (var y = 0; y < map.height; y++) {
+      for (var x = 0; x < map.width; x++) {
+        if (map.content.bottom[y][x] === 0)
+          this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
+        if (map.content.top[y][x] === 1)
+          this.ctx.drawImage(this.images[1].obj, x * TILE_SIZE, y * TILE_SIZE);
       }
     }
   },
