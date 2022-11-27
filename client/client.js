@@ -3,9 +3,9 @@
 const imagesPath = [
   "img/ground.png",
   "img/wall.png",
+  "img/scientist.png",
   "img/pet.png",
   "img/player.png",
-  "img/scientist.png",
 ];
 const URL = "localhost";
 const PORT = 50000;
@@ -96,6 +96,7 @@ const server = {
         map.height = map.content.bottom.length;
         map.width = map.content.bottom[0].length;
         map.spritesTab = this.msgFromServer.sprites_table;
+        display.setViewport(map.width, map.height);
         display.drawMap();
     }
   },
@@ -112,10 +113,10 @@ const display = {
     this.loadImages();
   },
 
-  setViewport: function () {
+  setViewport: function (width, height) {
     this.viewport = document.getElementById("viewport");
-    this.viewport.width = SCREEN_WIDTH;
-    this.viewport.height = SCREEN_HEIGHT;
+    this.viewport.width = width * TILE_SIZE;
+    this.viewport.height = height * TILE_SIZE;
   },
 
   setContext: function () {
