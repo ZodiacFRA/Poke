@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import Global
 from Dijkstra import Dijkstra
 
@@ -21,30 +23,33 @@ class Pathfinder(object):
     def __init__(self, map_wrapper):
         self.map_wrapper = map_wrapper
         self.algo = Dijkstra(map_wrapper)
-        self.paths = {}
+        self.queries = {}
 
     # Maybe add a priority number
-    def get_next_move(self, entity, to_pos, priority=1):
+    def get_next_move(self, entity, to_pos, priority=1, debug=False):
         if entity.pos == to_pos:
             print(f"{entity} already arrived")
             return None
 
-        if entity.id not in self.paths:  # First pathfinding query, create the entry
-            path = self.algo.get_shortest_path(entity.pos, to_pos)
-            if not path:
-                print(f"""[-] - Pathfinding system - Could not find path""")
-                return None
-            self.paths[entity.id] = PathfindingQuery(
-                entity, to_pos, path, Global.turn_idx
-            )
-            next_move = self.paths[entity.id].path.pop(0)
-        else:
-            query = self.paths[entity.id]
+        if entity.id not in self.queries:  # First pathfinding query, create the entry
+            next_move = self.init_new_query(entity, to_pos, priority)
+            if next_move is None:
+                return
+
+        elif entity.id in self.queries and self.queries[entity.id].to_pos != to_pos:  # Outdated query, delete and recreate
+            del self.queries[entity.id]
+            next_move = self.init_new_query(entity, to_pos, priority)
+            if next_move is None:
+                return
+
+        else:  # Query is usable
+            query = self.queries[entity.id]
             # Check if we need to rerun the algorithm based on priority and path age
             if Global.turn_idx - query.last_refresh > query.priority:
                 path = self.algo.get_shortest_path(entity.pos, to_pos)
                 if not path:
-                    print(f"""[-] - Pathfinding system - Could not find path""")
+                    if debug:
+                        print(f"""[ ] - Pathfinding system - Could not find path""")
                     return None
                 query.path = path
                 query.last_refresh = Global.turn_idx
@@ -53,7 +58,20 @@ class Pathfinder(object):
                 next_move = query.path.pop(0)
 
         # Delete query if finished (no more moves available) and the pathfinding is done
-        if len(self.paths[entity.id].path) <= 0:
-            del self.paths[entity.id]
+        if len(self.queries[entity.id].path) <= 0:
+            del self.queries[entity.id]
 
         return next_move
+
+    def init_new_query(self, entity, to_pos, priority, debug=False):
+        if debug:
+            print(f"new query from {entity.pos} to {to_pos}")
+        path = self.algo.get_shortest_path(entity.pos, to_pos)
+        if not path:
+            if debug:
+                print(f"""[ ] - Pathfinding system - Could not find path""")
+            return None
+        self.queries[entity.id] = PathfindingQuery(
+            entity, to_pos, path, Global.turn_idx, priority
+        )
+        return self.queries[entity.id].path.pop(0)

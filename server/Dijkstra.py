@@ -12,7 +12,7 @@ class Node(object):
         self.neighbors = []
 
     def __repr__(self):
-        return f"{self.pos}"
+        return f"[{self.pos}, {self.distance}]"
 
 
 class Dijkstra(object):
@@ -35,11 +35,15 @@ class Dijkstra(object):
         self.explore_neighbors(self.root_node)
         return self.compute()
 
-    def explore_neighbors(self, current_node, distance = 0):
+    def explore_neighbors(self, current_node, distance=0):
         if distance > self.map_wrapper.x_size * self.map_wrapper.y_size:
             return 2
         if current_node.pos == self.target_pos:
             return 1
+        self.explore_neighbors_2(current_node, distance)
+        return 0
+
+    def explore_neighbors_2(self, current_node, distance=0):
         for delta in self.deltas:
             tmp_pos = current_node.pos + delta
             # If is a valid position (is a node)
@@ -59,36 +63,38 @@ class Dijkstra(object):
                     if distance + 1 < newNode.distance:
                         newNode.distance = distance + 1
                 current_node.neighbors.append(newNode)
-            # We found it but the target tile is colliding (Workaround)
+            # We found it but the target tile is colliding - Workaround
             if tmp_pos == self.target_pos:
                 newNode = Node(tmp_pos, distance + 1)
                 current_node.neighbors.append(newNode)
                 self.to_do_nodes[tmp_pos.__repr__()] = newNode
-        return 0
 
     def compute(self):
-        previous_node = self.root_node
         while len(self.to_do_nodes) > 0:
             node = self.to_do_nodes.popitem(False)
             flag = self.explore_neighbors(node[1], node[1].distance)
             self.done_nodes[node[0]] = node[1]
             if flag == 1:
-                # Backtrack, add the found target node and the previous one,
-                # as the following instruction
-                # current_node.neighbors.append(newNode)
-                # has not been done for the target node in the explore_neighbors function
-                res = [node[1], previous_node]
-                tmp = None
-                min_neighbor = previous_node
-                while min_neighbor.distance > 1:
-                    tmp = min_neighbor
-                    min_neighbor = min(min_neighbor.neighbors, key=lambda x: x.distance)
+                res = []
+                # We start from the target
+                min_neighbor = node[1]
+                self.explore_neighbors_2(min_neighbor, min_neighbor.distance)
+                while min_neighbor.distance != 1:
+                    # DEBUG:
+                    # print('-'*20)
+                    # self.dra&w_distances()
+                    # print(f"from {min_neighbor}")
+                    for neighbor in min_neighbor.neighbors:
+                        # print('\t', neighbor)
+                        if neighbor.distance < min_neighbor.distance:
+                            min_neighbor = neighbor
+                    # min_neighbor = min(min_neighbor.neighbors, key=lambda x: x.distance)
+                    # print(f" to: {min_neighbor}")
                     res.append(min_neighbor)
                 res.reverse()
                 return [node.pos for node in res]
             elif flag == 2:
                 return []
-            previous_node = node[1]
 
     def draw_distances(self):
         """ Debug function, will draw an ascii representation of the map,

@@ -53,7 +53,8 @@ class Pet(LivingEntity):
     def do_turn(self, map_wrapper, living_entities):
         owner_pos = living_entities[self.owner_id].pos
         target_pos = owner_pos  # TODO: Add variation
-        next_move = map_wrapper.pathfinder.get_next_move(self, target_pos)
-        # print("next move", next_move)
-        if next_move is not None:
-            map_wrapper.move_entity(self.pos, next_move)
+        if owner_pos != self.pos:
+            next_move = map_wrapper.pathfinder.get_next_move(self, target_pos, 0)
+            # print("next move", next_move)
+            if next_move is not None:
+                map_wrapper.move_entity(self.pos, next_move)

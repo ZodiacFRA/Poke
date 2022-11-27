@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/pathfinding_demo_map.txt")
+        self.map_wrapper = MapWrapper("./maps/map")
 
         ### Networking
         self.incoming_messages = []
@@ -38,25 +38,21 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1/10  # 1/FPS
+        self.delta_time = 1/24  # 1/FPS
         Global.turn_idx = 0
         self.launch()
 
     def launch(self):
         while True:
+            # print('-'*50)  # DEBUG:
             start_time = time.time()
-            # print("tick")
             self.process_incoming_messages()
 
             self.process_living_entities()
 
             self.send_deltas()
+            self.send_full_map()  # TODO: Remove this whole map update, client should use deltas now
             self.send_players_their_position()
-            # TODO: Remove this whole map update, client should use deltas now
-            map = self.map_wrapper.serialize()
-            message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
-            self.server.send_message_to_all(json.dumps(message))
-
             Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
 
@@ -69,6 +65,7 @@ class App(object):
 
     def add_new_player(self, client, msg):
         player_pos = self.map_wrapper.get_available_position()
+        # player_pos = Position(0, 0)  # DEBUG:
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,
@@ -80,6 +77,7 @@ class App(object):
 
         ##### TMP, give the player a pet
         pet_position = self.map_wrapper.get_available_position()
+        # pet_position = Position(3, 3)  # DEBUG:
         print(f"Pet spawning at position {pet_position}")
         pet = Pet(
             id=self.id_manager.create_new_id(),
@@ -88,10 +86,6 @@ class App(object):
         )
         self.living_entities[pet.id] = pet
         self.map_wrapper.add_entity(pet.pos, pet)
-
-        # map = self.map_wrapper.serialize()
-        # message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
-        # self.server.send_message_to_all(json.dumps(message))
 
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
@@ -137,6 +131,11 @@ class App(object):
             # print("\tDelta: ", end='')
             # pprint(delta)
             self.server.send_message_to_all(json.dumps(delta))
+
+    def send_full_map(self):
+        map = self.map_wrapper.serialize()
+        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
+        self.server.send_message_to_all(json.dumps(message))
 
     def send_players_their_position(self):
         for client in self.server.clients:
