@@ -42,7 +42,7 @@ class image {
 
 const keyboard = {
   listen: function () {
-    window.addEventListener("key_input", (e) => {
+    window.addEventListener("keypress", (e) => {
       server.msgToServer = {
         msg_type: "key_event",
         key: e.key,
@@ -76,7 +76,7 @@ const server = {
     this.connection.onmessage = (event) => {
       try {
         this.msgFromServer = JSON.parse(event.data);
-        console.log(this.msgFromServer);
+        // console.log(this.msgFromServer);
         this.parseMsg();
       } catch (exception) {}
     };
