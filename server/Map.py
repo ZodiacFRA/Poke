@@ -130,3 +130,10 @@ class MapWrapper(object):
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized
+
+    def display_ascii(self):
+        """ Only displaying the top entity """
+        for y_idx in range(self.y_size):
+            for x_idx in range(self.x_size):
+                print(f"{str(self.get(Position(y_idx, x_idx)))}", end="")
+            print()

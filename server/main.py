@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/map")
+        self.map_wrapper = MapWrapper("./maps/small")
 
         ### Networking
         self.incoming_messages = []
@@ -35,7 +35,7 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1/24  # 1/FPS
+        self.delta_time = 1/1  # 1/FPS
         Global.turn_idx = 0
         self.launch()
 
@@ -50,6 +50,7 @@ class App(object):
             self.send_deltas()
             self.send_full_map()  # TODO: Remove this whole map update, client should use deltas now
             self.send_players_their_position()
+            # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
 
@@ -136,7 +137,10 @@ class App(object):
 
     def send_players_their_position(self):
         for client in self.server.clients:
-            pos = self.living_entities[self.id_manager.get_engine_id(client["id"])].pos
+            engine_id = self.id_manager.get_engine_id(client["id"])
+            if engine_id is None:
+                continue
+            pos = self.living_entities[engine_id].pos
             msg = {"msg_type": "player_pos", "player_y": pos.y, "player_x": pos.x}
             self.server.send_message(client, json.dumps(msg))
 
