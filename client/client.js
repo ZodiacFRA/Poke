@@ -14,14 +14,15 @@ const imgPathArray = [
   "img/player.png",
 ];
 
-// WORK IN PROGRESS
-const character = {
-  image: () => {
-    return image();
-  },
-};
+class image {
+  constructor(path) {
+    this.obj = new Image();
+    this.obj.src = path;
+    if (this.obj.height > TILE_SIZE || this.obj.width > TILE_SIZE)
+      this.isForeground = true;
+  }
+}
 
-// WORK IN PROGRESS
 const map = {
   content: null,
   width: 0,
@@ -35,15 +36,6 @@ const map = {
     }
   },
 };
-
-class image {
-  constructor(path) {
-    this.obj = new Image();
-    this.obj.src = path;
-    if (this.obj.height > TILE_SIZE || this.obj.width > TILE_SIZE)
-      this.isForeground = true;
-  }
-}
 
 const keyboard = {
   listen: function () {
@@ -87,13 +79,20 @@ const server = {
   },
 
   parseMsg: function () {
-    switch (this.msgFromServer.type) {
+    switch (this.msgFromServer.msg_type) {
       case "init_map":
         map.content = this.msgFromServer.map;
         map.height = map.content.bottom.length;
         map.width = map.content.bottom[0].length;
         display.setViewport(map.width, map.height); // Temporary as viewport should be always fix
+        // if (player.isUninitialized()) player.initPosition();
+        // else player.getDirection();
         display.drawMap();
+        break;
+      case "delta":
+        console.log(this.msgFromServer);
+        display.updateMap(this.msgFromServer);
+        break;
     }
   },
 };
@@ -135,7 +134,6 @@ const display = {
       );
     }
     await Promise.all(promiseArray); // wait for all the images to be loaded
-    console.log("all images loaded");
     return this.images;
   },
 
@@ -146,12 +144,69 @@ const display = {
           this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
         if (map.content.top[y][x] == 1)
           this.ctx.drawImage(this.images[1].obj, x * TILE_SIZE, y * TILE_SIZE);
-        else if (map.content.top[y][x] == 2)
-          this.ctx.drawImage(this.images[2].obj, x * TILE_SIZE, y * TILE_SIZE);
-        else if (map.content.top[y][x] == 3)
-          this.ctx.drawImage(this.images[3].obj, x * TILE_SIZE, y * TILE_SIZE);
       }
     }
+  },
+
+  updateMap: function (msgFromServer) {
+    switch (msgFromServer.type) {
+      case "add_entity":
+        map.content.top[msgFromServer.pos_x][msgFromServer.pos_y] =
+          this.ctx.drawImage(
+            this.images[msgFromServer.entity + 1].obj, // + 1 is temporary using pikachu instead of player (32x32 is better)
+            msgFromServer.pos_x * TILE_SIZE,
+            msgFromServer.pos_y * TILE_SIZE
+          );
+        break;
+      case "delete_entity":
+        this.ctx.drawImage(
+          this.images[0].obj,
+          msgFromServer.pos_x * TILE_SIZE,
+          msgFromServer.pos_y * TILE_SIZE
+        );
+        break;
+    }
+  },
+};
+
+const player = {
+  position: {
+    x: -1,
+    y: -1,
+  },
+
+  initPosition: function () {
+    this.position = this.getPosition();
+  },
+
+  isUninitialized: function () {
+    if (this.position.x === -1) return true;
+    else return false;
+  },
+
+  getPosition: function () {
+    position = { x: 0, y: 0 };
+    for (var y = 0; y < map.height; y++) {
+      for (var x = 0; x < map.width; x++) {
+        if (map.content.top[y][x] == 2) {
+          position.x = x;
+          position.y = y;
+          return position;
+        }
+      }
+    }
+  },
+
+  getDirection: function () {
+    xOffset = this.getPosition().x - this.position.x;
+    yOffset = this.getPosition().y - this.position.y;
+    console.log(xOffset, yOffset);
+
+    if (yOffset === 1) return "down";
+    else if (yOffset === -1) return "up";
+    else if (xOffset === 1) return "right";
+    else if (xOffset === -1) return "left";
+    else return "";
   },
 };
 
