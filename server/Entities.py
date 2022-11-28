@@ -13,6 +13,9 @@ class Entity(object):
         # Remove the <class Entities. and the >
         return f"{str(type(self))[17:-2]} - {self.pos}"
 
+    def get_json_repr(self):
+        return {"x": self.pos.x, "y": self.pos.y}
+
 ##############################################
 
 class Ground(Entity):

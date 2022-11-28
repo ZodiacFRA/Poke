@@ -46,8 +46,7 @@ class MapWrapper(object):
         entity.pos = pos
         self.map_events_deltas.append({
             "type": "add_entity",
-            "pos_x": pos.x,
-            "pos_y": pos.y,
+            "pos": pos.get_json_repr()
             "entity": self.sprites.index(entity.sprite)
         })
 
@@ -59,8 +58,7 @@ class MapWrapper(object):
         self.map[pos.y][pos.x].t = None
         self.map_events_deltas.append({
             "type": "delete_entity",
-            "pos_x": pos.x,
-            "pos_y": pos.y
+            "pos": pos.get_json_repr()
         })
         return entity
 
@@ -75,6 +73,11 @@ class MapWrapper(object):
                 print(f"""[ ] - Map system - Could not move {self.map[from_pos.y][from_pos.x].t} to {to_pos}, colliding""")
             return False
         entity = self.delete_entity(from_pos)
+        self.map_events_deltas.append({
+            "type": "move_entity",
+            "from_pos": from_pos.get_json_repr(),
+            "to_pos": to_pos.get_json_repr()
+        })
         return True
 
     ########################################
