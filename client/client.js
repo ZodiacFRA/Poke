@@ -1,5 +1,11 @@
 "restric mode";
 
+const URL = "localhost";
+const PORT = 50000;
+const SCREEN_WIDTH = 720;
+const SCREEN_HEIGHT = 480;
+const PLAYER_ID = "UnDesSix";
+const TILE_SIZE = 32;
 const imgPathArray = [
   "img/ground.png",
   "img/wall.png",
@@ -7,13 +13,6 @@ const imgPathArray = [
   "img/pet.png",
   "img/player.png",
 ];
-
-const URL = "localhost";
-const PORT = 50000;
-const SCREEN_WIDTH = 720;
-const SCREEN_HEIGHT = 480;
-const PLAYER_ID = "UnDesSix";
-const TILE_SIZE = 32;
 
 // WORK IN PROGRESS
 const character = {
@@ -93,7 +92,7 @@ const server = {
         map.content = this.msgFromServer.map;
         map.height = map.content.bottom.length;
         map.width = map.content.bottom[0].length;
-        display.setViewport(map.width, map.height);
+        display.setViewport(map.width, map.height); // Temporary as viewport should be always fix
         display.drawMap();
     }
   },
