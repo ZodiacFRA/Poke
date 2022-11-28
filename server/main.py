@@ -62,9 +62,7 @@ class App(object):
 
     def add_new_player(self, client, msg):
         self.send_full_map()
-
         player_pos = self.map_wrapper.get_available_position()
-        # player_pos = Position(0, 0)  # DEBUG:
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,
@@ -73,19 +71,19 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
+        self.add_pet(player)
 
-        # ##### TODO, give the player a pet
-        # pet_position = self.map_wrapper.get_available_position()
-        # # pet_position = Position(3, 3)  # DEBUG:
-        # print(f"Pet spawning at position {pet_position}")
-        # pet = Pet(
-        #     id=self.id_manager.create_new_id(),
-        #     pos=pet_position,
-        #     owner_id=player.id
-        # )
-        # self.living_entities[pet.id] = pet
-        # self.map_wrapper.add_entity(pet.pos, pet)
-
+    def add_pet(self, player, position=None):
+        pet_position = position if position else self.map_wrapper.get_available_position()
+        pet = Pet(
+            id=self.id_manager.create_new_id(),
+            pos=pet_position,
+            owner=player
+        )
+        self.living_entities[pet.id] = pet
+        self.map_wrapper.add_entity(pet.pos, pet)
+        self.living_entities[player.id].pets.append(pet)
+        print(f"Pet spawned at position {pet_position}")
 
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])

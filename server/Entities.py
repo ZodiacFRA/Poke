@@ -45,27 +45,27 @@ class Player(LivingEntity):
         self.collider = True
         self.name = name
         self.inventory = {}
+        self.pets = []
 
 class Pet(LivingEntity):
-    def __init__(self, id, pos, owner_id, sprite="lava_0", speed=1):
+    def __init__(self, id, pos, owner, sprite="lava_0", speed=1):
         super().__init__(id, pos, speed, sprite)
         self.collider = True
-        self.owner_id = owner_id
+        self.owner = owner
         self.owner_previous_positions = collections.deque(maxlen=4)
         self.distance_from_owner = 1
         self.distance_change_turns_duration = 10
         self.moves_nbr = 0
 
     def do_turn(self, map_wrapper, living_entities):
-        owner_pos = living_entities[self.owner_id].pos
         if self.owner_previous_positions:
             idx = min(len(self.owner_previous_positions) - 1, len(self.owner_previous_positions) - self.distance_from_owner)
             target_pos = self.owner_previous_positions[idx]
         else:
-            target_pos = owner_pos
-            self.owner_previous_positions.append(owner_pos)
-        if owner_pos != self.owner_previous_positions[-1]:
-            self.owner_previous_positions.append(owner_pos)
+            target_pos = self.owner.pos
+            self.owner_previous_positions.append(self.owner.pos)
+        if self.owner.pos != self.owner_previous_positions[-1]:
+            self.owner_previous_positions.append(self.owner.pos)
         if self.pos != target_pos:
             next_move = map_wrapper.pathfinder.get_next_move(self, target_pos, 0)
             if next_move is not None:
