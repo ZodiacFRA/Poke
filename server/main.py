@@ -62,6 +62,8 @@ class App(object):
     ### Message processing
 
     def add_new_player(self, client, msg):
+        self.send_full_map()
+
         player_pos = self.map_wrapper.get_available_position()
         # player_pos = Position(0, 0)  # DEBUG:
         player = Player(
@@ -85,7 +87,6 @@ class App(object):
         self.living_entities[pet.id] = pet
         self.map_wrapper.add_entity(pet.pos, pet)
 
-        self.send_full_map()
 
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
