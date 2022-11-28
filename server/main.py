@@ -144,7 +144,15 @@ class App(object):
             self.server.send_message(client, json.dumps(msg))
 
     def on_client_leave(self, client, server):
+        print("left")
         engine_id = self.id_manager.get_engine_id(client["id"])
+        # Remove all messages from this player in the message queue
+        tmp = []
+        for idx, (tmp_client, msg) in enumerate(self.incoming_messages):
+            if tmp_client["id"] != client["id"]:
+                tmp.append((tmp_client, msg))
+        self.incoming_messages = tmp
+
         player = self.living_entities.pop(engine_id)
         self.map_wrapper.delete_entity(player.pos)
 
