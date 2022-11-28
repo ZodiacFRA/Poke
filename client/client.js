@@ -79,7 +79,6 @@ const server = {
   },
 
   parseMsg: function () {
-    console.log(this.msgFromServer);
     switch (this.msgFromServer.msg_type) {
       case "init_map":
         map.content = this.msgFromServer.map;
@@ -91,6 +90,7 @@ const server = {
         display.drawMap();
         break;
       case "delta":
+        console.log(this.msgFromServer);
         display.updateMap(this.msgFromServer);
         break;
     }
@@ -151,10 +151,10 @@ const display = {
   updateMap: function (msgFromServer) {
     switch (msgFromServer.type) {
       case "add_entity":
-        map.content.top[msgFromServer.pos.y][msgFromServer.pos.x] =
-          msgFromServer.entity;
+        const tmp = msgFromServer.entity + 1; // + 1 is temporary using pikachu instead of player (32x32 is better)
+        map.content.top[msgFromServer.pos.y][msgFromServer.pos.x] = tmp;
         this.ctx.drawImage(
-          this.images[msgFromServer.entity + 1].obj, // + 1 is temporary using pikachu instead of player (32x32 is better)
+          this.images[tmp].obj, // + 1 is temporary using pikachu instead of player (32x32 is better)
           msgFromServer.pos.x * TILE_SIZE,
           msgFromServer.pos.y * TILE_SIZE
         );
@@ -164,6 +164,29 @@ const display = {
           this.images[0].obj,
           msgFromServer.pos.x * TILE_SIZE,
           msgFromServer.pos.y * TILE_SIZE
+        );
+        break;
+      case "move_entity":
+        const entityBot =
+          map.content.bottom[msgFromServer.from_pos.y][
+            msgFromServer.from_pos.x
+          ];
+        const entityTop =
+          map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
+        console.log(entityBot, entityTop);
+        map.content.top[msgFromServer.to_pos.y][msgFromServer.to_pos.x] =
+          map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
+        map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x] =
+          "";
+        this.ctx.drawImage(
+          this.images[entityBot].obj,
+          msgFromServer.from_pos.x * TILE_SIZE,
+          msgFromServer.from_pos.y * TILE_SIZE
+        );
+        this.ctx.drawImage(
+          this.images[entityTop].obj,
+          msgFromServer.to_pos.x * TILE_SIZE,
+          msgFromServer.to_pos.y * TILE_SIZE
         );
         break;
     }
