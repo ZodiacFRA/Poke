@@ -141,7 +141,7 @@ class App(object):
             if engine_id is None:
                 continue
             pos = self.living_entities[engine_id].pos
-            msg = {"msg_type": "player_pos", "player_y": pos.y, "player_x": pos.x}
+            msg = {"msg_type": "player_pos", "pos_y": pos.y, "pos_x": pos.x}
             self.server.send_message(client, json.dumps(msg))
 
     def on_client_leave(self, client, server):

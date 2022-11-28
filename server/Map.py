@@ -46,7 +46,8 @@ class MapWrapper(object):
         entity.pos = pos
         self.map_events_deltas.append({
             "type": "add_entity",
-            "pos": str(pos),
+            "pos_x": pos.x,
+            "pos_y": pos.y,
             "entity": self.sprites.index(entity.sprite)
         })
 
@@ -58,7 +59,8 @@ class MapWrapper(object):
         self.map[pos.y][pos.x].t = None
         self.map_events_deltas.append({
             "type": "delete_entity",
-            "pos": str(pos),
+            "pos_x": pos.x,
+            "pos_y": pos.y
         })
         return entity
 
