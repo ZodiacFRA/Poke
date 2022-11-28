@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/small")
+        self.map_wrapper = MapWrapper("./maps/medium")
 
         ### Networking
         self.incoming_messages = []
@@ -128,7 +128,7 @@ class App(object):
 
     def send_full_map(self):
         map = self.map_wrapper.serialize()
-        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
+        message = {"type": "init_map", "map": map}
         self.server.send_message_to_all(json.dumps(message))
 
     def send_players_their_position(self):

@@ -1,3 +1,5 @@
+import random
+import collections
 """ For now all Entities have a position, but only the living entities get an id
 """
 
@@ -49,12 +51,29 @@ class Pet(LivingEntity):
         super().__init__(id, pos, speed, sprite)
         self.collider = True
         self.owner_id = owner_id
+        self.owner_previous_positions = collections.deque(maxlen=4)
+        self.distance_from_owner = 1
+        self.distance_change_turns_duration = 10
+        self.moves_nbr = 0
 
     def do_turn(self, map_wrapper, living_entities):
         owner_pos = living_entities[self.owner_id].pos
-        target_pos = owner_pos  # TODO: Add variation
-        if owner_pos != self.pos:
+        if self.owner_previous_positions:
+            idx = min(len(self.owner_previous_positions) - 1, len(self.owner_previous_positions) - self.distance_from_owner)
+            target_pos = self.owner_previous_positions[idx]
+        else:
+            target_pos = owner_pos
+            self.owner_previous_positions.append(owner_pos)
+        if owner_pos != self.owner_previous_positions[-1]:
+            self.owner_previous_positions.append(owner_pos)
+        if self.pos != target_pos:
             next_move = map_wrapper.pathfinder.get_next_move(self, target_pos, 0)
-            # print("next move", next_move)
             if next_move is not None:
-                map_wrapper.move_entity(self.pos, next_move)
+                done_move = map_wrapper.move_entity(self.pos, next_move)
+                if done_move:
+                    self.moves_nbr += 1
+                    if self.moves_nbr > self.distance_change_turns_duration:
+                        self.moves_nbr = 0
+                        self.distance_change_turns_duration = random.randint(5, 20)
+                        self.distance_from_owner = random.randint(1, len(self.owner_previous_positions))
+                        # print(f"distance change to: {self.distance_from_owner}, will change in {self.distance_change_turns_duration}")  # DEBUG:
