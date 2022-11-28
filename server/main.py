@@ -85,6 +85,8 @@ class App(object):
         self.living_entities[pet.id] = pet
         self.map_wrapper.add_entity(pet.pos, pet)
 
+        self.send_full_map()
+
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
         player_pos = self.living_entities[engine_id].pos
