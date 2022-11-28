@@ -46,7 +46,7 @@ class MapWrapper(object):
         entity.pos = pos
         self.map_events_deltas.append({
             "type": "add_entity",
-            "pos": pos.get_json_repr()
+            "pos": pos.get_json_repr(),
             "entity": self.sprites.index(entity.sprite)
         })
 
