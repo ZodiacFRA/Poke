@@ -44,11 +44,12 @@ class MapWrapper(object):
             raise CollisionError(pos)
         self.map[pos.y][pos.x].t = entity
         entity.pos = pos
-        self.map_events_deltas.append({
-            "type": "add_entity",
-            "pos": pos.get_json_repr(),
-            "entity": self.sprites.index(entity.sprite)
-        })
+        if not is_move:
+            self.map_events_deltas.append({
+                "type": "add_entity",
+                "pos": pos.get_json_repr(),
+                "entity": self.sprites.index(entity.sprite)
+            })
 
     def delete_entity(self, pos, is_move=False, check_collision_before_delete=True):
         if check_collision_before_delete and not self.is_colliding_pos(pos):
@@ -56,10 +57,11 @@ class MapWrapper(object):
             return
         entity = self.map[pos.y][pos.x].t
         self.map[pos.y][pos.x].t = None
-        self.map_events_deltas.append({
-            "type": "delete_entity",
-            "pos": pos.get_json_repr()
-        })
+        if not is_move:
+            self.map_events_deltas.append({
+                "type": "delete_entity",
+                "pos": pos.get_json_repr()
+            })
         return entity
 
     def move_entity(self, from_pos, to_pos, debug=False):
