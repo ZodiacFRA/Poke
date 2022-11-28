@@ -79,6 +79,7 @@ const server = {
   },
 
   parseMsg: function () {
+    console.log(this.msgFromServer);
     switch (this.msgFromServer.msg_type) {
       case "init_map":
         map.content = this.msgFromServer.map;
@@ -90,7 +91,6 @@ const server = {
         display.drawMap();
         break;
       case "delta":
-        console.log(this.msgFromServer);
         display.updateMap(this.msgFromServer);
         break;
     }
@@ -151,18 +151,19 @@ const display = {
   updateMap: function (msgFromServer) {
     switch (msgFromServer.type) {
       case "add_entity":
-        map.content.top[msgFromServer.pos_x][msgFromServer.pos_y] =
-          this.ctx.drawImage(
-            this.images[msgFromServer.entity + 1].obj, // + 1 is temporary using pikachu instead of player (32x32 is better)
-            msgFromServer.pos_x * TILE_SIZE,
-            msgFromServer.pos_y * TILE_SIZE
-          );
+        map.content.top[msgFromServer.pos.y][msgFromServer.pos.x] =
+          msgFromServer.entity;
+        this.ctx.drawImage(
+          this.images[msgFromServer.entity + 1].obj, // + 1 is temporary using pikachu instead of player (32x32 is better)
+          msgFromServer.pos.x * TILE_SIZE,
+          msgFromServer.pos.y * TILE_SIZE
+        );
         break;
       case "delete_entity":
         this.ctx.drawImage(
           this.images[0].obj,
-          msgFromServer.pos_x * TILE_SIZE,
-          msgFromServer.pos_y * TILE_SIZE
+          msgFromServer.pos.x * TILE_SIZE,
+          msgFromServer.pos.y * TILE_SIZE
         );
         break;
     }
