@@ -1,12 +1,13 @@
 "restric mode";
 
-const imagesPath = [
+const imgPathArray = [
   "img/ground.png",
   "img/wall.png",
   "img/scientist.png",
   "img/pet.png",
   "img/player.png",
 ];
+
 const URL = "localhost";
 const PORT = 50000;
 const SCREEN_WIDTH = 720;
@@ -52,7 +53,6 @@ const keyboard = {
         msg_type: "key_input",
         key: e.key,
       };
-      console.log(server.msgToServer);
       server.connection.send(JSON.stringify(server.msgToServer));
     });
   },
@@ -82,7 +82,6 @@ const server = {
     this.connection.onmessage = (event) => {
       try {
         this.msgFromServer = JSON.parse(event.data);
-        // console.log(this.msgFromServer);
         this.parseMsg();
       } catch (exception) {}
     };
@@ -108,7 +107,7 @@ const display = {
   init: function () {
     this.setViewport();
     this.setContext();
-    this.loadImages();
+    this.loadImages().then(() => display.drawMap());
   },
 
   setViewport: function (width, height) {
@@ -121,22 +120,34 @@ const display = {
     this.ctx = this.viewport.getContext("2d");
   },
 
-  loadImages: function () {
-    for (var i = 0; i < imagesPath.length; i++) {
-      this.images.push(new image(imagesPath[i]));
+  loadImages: async function () {
+    // create an array for promises
+    const promiseArray = [];
+
+    for (let imgPath of imgPathArray) {
+      promiseArray.push(
+        new Promise((resolve) => {
+          const img = new image(imgPath);
+          img.obj.onload = function () {
+            resolve();
+          };
+          this.images.push(img);
+        })
+      );
     }
+    await Promise.all(promiseArray); // wait for all the images to be loaded
+    console.log("all images loaded");
+    return this.images;
   },
 
-  // NEED TP INSERT SEUB FUNCTION INSTEAD
   drawMap: function () {
-    let i = 0;
     for (var y = 0; y < map.height; y++) {
       for (var x = 0; x < map.width; x++) {
         if (map.content.bottom[y][x] === 0)
           this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
         if (map.content.top[y][x] == 1)
           this.ctx.drawImage(this.images[1].obj, x * TILE_SIZE, y * TILE_SIZE);
-        if (map.content.top[y][x] == 2)
+        else if (map.content.top[y][x] == 2)
           this.ctx.drawImage(this.images[2].obj, x * TILE_SIZE, y * TILE_SIZE);
         else if (map.content.top[y][x] == 3)
           this.ctx.drawImage(this.images[3].obj, x * TILE_SIZE, y * TILE_SIZE);
@@ -146,5 +157,6 @@ const display = {
 };
 
 display.init();
+
 server.listen();
 keyboard.listen();
