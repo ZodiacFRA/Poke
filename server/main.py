@@ -35,7 +35,7 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1/24  # 1/FPS
+        self.delta_time = 1/12  # 1/FPS
         Global.turn_idx = 0
         self.launch()
 
@@ -123,12 +123,13 @@ class App(object):
         """ Send map and game events deltas """
         while len(self.map_wrapper.map_events_deltas) > 0:
             delta = self.map_wrapper.map_events_deltas.pop(0)
+            delta["msg_type"] = "delta"
             delta["turn_idx"] = Global.turn_idx
             self.server.send_message_to_all(json.dumps(delta))
 
     def send_full_map(self):
         map = self.map_wrapper.serialize()
-        message = {"type": "init_map", "map": map}
+        message = {"msg_type": "init_map", "map": map}
         self.server.send_message_to_all(json.dumps(message))
 
     def send_players_their_position(self):
