@@ -48,7 +48,6 @@ class App(object):
             self.process_living_entities()
 
             self.send_deltas()
-            self.send_full_map()  # TODO: Remove this whole map update, client should use deltas now
             self.send_players_their_position()
             # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
