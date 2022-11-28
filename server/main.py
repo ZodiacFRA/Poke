@@ -37,6 +37,14 @@ class App(object):
         ### Game loop
         self.delta_time = 1/12  # 1/FPS
         Global.turn_idx = 0
+        ### Utils
+        self.pos_deltas = (
+            Position(-1, 0),
+            Position(0, 1),
+            Position(1, 0),
+            Position(0, -1)
+        )
+
         self.launch()
 
     def launch(self):
@@ -87,20 +95,24 @@ class App(object):
 
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
-        player_pos = self.living_entities[engine_id].pos
+        player = self.living_entities[engine_id]
         if msg["key"] == "ArrowUp":
-            new_pos = Position(player_pos.y - 1, player_pos.x)
-        elif msg["key"] == "ArrowDown":
-            new_pos = Position(player_pos.y + 1, player_pos.x)
-        elif msg["key"] == "ArrowLeft":
-            new_pos = Position(player_pos.y, player_pos.x - 1)
+            new_pos = player.pos + self.pos_deltas[0]
+            player.direction = 0
         elif msg["key"] == "ArrowRight":
-            new_pos = Position(player_pos.y, player_pos.x + 1)
+            new_pos = player.pos + self.pos_deltas[1]
+            player.direction = 1
+        elif msg["key"] == "ArrowDown":
+            new_pos = player.pos + self.pos_deltas[2]
+            player.direction = 2
+        elif msg["key"] == "ArrowLeft":
+            new_pos = player.pos + self.pos_deltas[3]
+            player.direction = 3
         else:  # Not a movement
             return
         # No need to check for collisions
         # we just ignore if the move isn't possible
-        self.map_wrapper.move_entity(player_pos, new_pos)
+        self.map_wrapper.move_entity(player.pos, new_pos)
 
     ########################################3
     ### Networking

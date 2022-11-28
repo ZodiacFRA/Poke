@@ -35,6 +35,8 @@ class LivingEntity(Entity):
         self.speed = speed
         self.turn_idx = 0
         self.sprite = sprite
+        self.direction = 0
+        # 0: Top, 1: Right, 2: Bottom, 3: Left
 
     def do_turn(self, map_wrapper, living_entities):
         pass
