@@ -36,7 +36,7 @@ class MapWrapper(object):
     # - Update the entity's own position object
     # - Add the action to the self.delta list
 
-    def add_entity(self, pos, entity):
+    def add_entity(self, pos, entity, is_move=False):
         if entity is None:
             print(f"""[-] - Map system - Empty entity won't be added at {pos}""")
             return
@@ -50,7 +50,7 @@ class MapWrapper(object):
             "entity": self.sprites.index(entity.sprite)
         })
 
-    def delete_entity(self, pos, check_collision_before_delete=True):
+    def delete_entity(self, pos, is_move=False, check_collision_before_delete=True):
         if check_collision_before_delete and not self.is_colliding_pos(pos):
             print(f"""[-] - Map system - No entity to remove at {pos}""")
             return
@@ -67,12 +67,12 @@ class MapWrapper(object):
         as it will be checked by add_entity()
         Returns True if move is successful """
         try:
-            self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
+            self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t, True)
         except CollisionError:
             if debug:
                 print(f"""[ ] - Map system - Could not move {self.map[from_pos.y][from_pos.x].t} to {to_pos}, colliding""")
             return False
-        entity = self.delete_entity(from_pos)
+        entity = self.delete_entity(from_pos, True)
         self.map_events_deltas.append({
             "type": "move_entity",
             "from_pos": from_pos.get_json_repr(),

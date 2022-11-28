@@ -75,17 +75,17 @@ class App(object):
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
 
-        ##### TODO, give the player a pet
-        pet_position = self.map_wrapper.get_available_position()
-        # pet_position = Position(3, 3)  # DEBUG:
-        print(f"Pet spawning at position {pet_position}")
-        pet = Pet(
-            id=self.id_manager.create_new_id(),
-            pos=pet_position,
-            owner_id=player.id
-        )
-        self.living_entities[pet.id] = pet
-        self.map_wrapper.add_entity(pet.pos, pet)
+        # ##### TODO, give the player a pet
+        # pet_position = self.map_wrapper.get_available_position()
+        # # pet_position = Position(3, 3)  # DEBUG:
+        # print(f"Pet spawning at position {pet_position}")
+        # pet = Pet(
+        #     id=self.id_manager.create_new_id(),
+        #     pos=pet_position,
+        #     owner_id=player.id
+        # )
+        # self.living_entities[pet.id] = pet
+        # self.map_wrapper.add_entity(pet.pos, pet)
 
 
     def do_movement(self, client, msg):
