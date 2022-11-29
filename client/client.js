@@ -6,6 +6,8 @@ const SCREEN_WIDTH = 720;
 const SCREEN_HEIGHT = 480;
 const PLAYER_ID = "UnDesSix";
 const TILE_SIZE = 32;
+const FPS = 30;
+
 const imgPathArray = [
   "img/ground.png",
   "img/wall.png",
@@ -31,7 +33,7 @@ const map = {
 
   movePlayer: function () {
     this.playerMoved = false;
-    for (let i = 0; i < display.tileSize; i++) {
+    for (let i = 0; i < app.tileSize; i++) {
       //
     }
   },
@@ -44,17 +46,19 @@ const keyboard = {
         msg_type: "key_input",
         key: e.key,
       };
-      server.connection.send(JSON.stringify(server.msgToServer));
+      if (server.connection)
+        server.connection.send(JSON.stringify(server.msgToServer));
     });
   },
 };
 
 const server = {
-  connection: new WebSocket("ws://" + URL + ":" + PORT),
+  connection: null,
   msgFromServer: null,
   msgToServer: null,
 
   connect: function () {
+    this.connection = new WebSocket("ws://" + URL + ":" + PORT);
     this.msgToServer = {
       msg_type: "create_player",
       player_name: PLAYER_ID,
@@ -65,6 +69,7 @@ const server = {
 
   listen: function () {
     this.connect();
+    keyboard.listen();
 
     this.connection.onerror = (error) => {
       console.log(`WebSocket error: ${error}`);
@@ -84,20 +89,20 @@ const server = {
         map.content = this.msgFromServer.map;
         map.height = map.content.bottom.length;
         map.width = map.content.bottom[0].length;
-        display.setViewport(map.width, map.height); // Temporary as viewport should be always fix
+        app.setViewport(map.width, map.height); // Temporary as viewport should be always fix
         // if (player.isUninitialized()) player.initPosition();
         // else player.getDirection();
-        display.drawMap();
+        app.drawMap();
         break;
       case "delta":
         console.log(this.msgFromServer);
-        display.updateMap(this.msgFromServer);
+        app.updateMap(this.msgFromServer);
         break;
     }
   },
 };
 
-const display = {
+const app = {
   viewport: null,
   ctx: null,
   images: [],
@@ -105,7 +110,7 @@ const display = {
   init: function () {
     this.setViewport();
     this.setContext();
-    this.loadImages().then(() => display.drawMap());
+    this.loadImages().then(() => server.listen());
   },
 
   setViewport: function (width, height) {
@@ -134,6 +139,7 @@ const display = {
       );
     }
     await Promise.all(promiseArray); // wait for all the images to be loaded
+    console.log("loaded images");
     return this.images;
   },
 
@@ -234,7 +240,4 @@ const player = {
   },
 };
 
-display.init();
-
-server.listen();
-keyboard.listen();
+app.init();
