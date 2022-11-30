@@ -13,7 +13,7 @@ const imgPathArray = [
   "img/wall.png",
   "img/scientist.png",
   "img/pet.png",
-  "img/player.png",
+  // "img/player.png",
 ];
 
 class image {
@@ -84,18 +84,16 @@ const server = {
   },
 
   parseMsg: function () {
+    console.log(this.msgFromServer);
     switch (this.msgFromServer.msg_type) {
       case "init_map":
         map.content = this.msgFromServer.map;
         map.height = map.content.bottom.length;
         map.width = map.content.bottom[0].length;
-        app.setViewport(map.width, map.height); // Temporary as viewport should be always fix
-        // if (player.isUninitialized()) player.initPosition();
-        // else player.getDirection();
-        app.drawMap();
+        app.setViewport(map.width, map.height);
+        app.initMap();
         break;
       case "delta":
-        console.log(this.msgFromServer);
         app.updateMap(this.msgFromServer);
         break;
     }
@@ -143,7 +141,7 @@ const app = {
     return this.images;
   },
 
-  drawMap: function () {
+  initMap: function () {
     for (var y = 0; y < map.height; y++) {
       for (var x = 0; x < map.width; x++) {
         if (map.content.bottom[y][x] === 0)
@@ -157,10 +155,10 @@ const app = {
   updateMap: function (msgFromServer) {
     switch (msgFromServer.type) {
       case "add_entity":
-        const tmp = msgFromServer.entity + 1; // + 1 is temporary using pikachu instead of player (32x32 is better)
-        map.content.top[msgFromServer.pos.y][msgFromServer.pos.x] = tmp;
+        map.content.top[msgFromServer.pos.y][msgFromServer.pos.x] =
+          msgFromServer.entity;
         this.ctx.drawImage(
-          this.images[tmp].obj, // + 1 is temporary using pikachu instead of player (32x32 is better)
+          this.images[msgFromServer.entity].obj,
           msgFromServer.pos.x * TILE_SIZE,
           msgFromServer.pos.y * TILE_SIZE
         );
@@ -196,47 +194,6 @@ const app = {
         );
         break;
     }
-  },
-};
-
-const player = {
-  position: {
-    x: -1,
-    y: -1,
-  },
-
-  initPosition: function () {
-    this.position = this.getPosition();
-  },
-
-  isUninitialized: function () {
-    if (this.position.x === -1) return true;
-    else return false;
-  },
-
-  getPosition: function () {
-    position = { x: 0, y: 0 };
-    for (var y = 0; y < map.height; y++) {
-      for (var x = 0; x < map.width; x++) {
-        if (map.content.top[y][x] == 2) {
-          position.x = x;
-          position.y = y;
-          return position;
-        }
-      }
-    }
-  },
-
-  getDirection: function () {
-    xOffset = this.getPosition().x - this.position.x;
-    yOffset = this.getPosition().y - this.position.y;
-    console.log(xOffset, yOffset);
-
-    if (yOffset === 1) return "down";
-    else if (yOffset === -1) return "up";
-    else if (xOffset === 1) return "right";
-    else if (xOffset === -1) return "left";
-    else return "";
   },
 };
 
