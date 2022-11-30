@@ -36,7 +36,7 @@ class MapWrapper(object):
     # - Update the entity's own position object
     # - Add the action to the self.delta list
 
-    def add_entity(self, pos, entity):
+    def add_entity(self, pos, entity, is_move=False):
         if entity is None:
             print(f"""[-] - Map system - Empty entity won't be added at {pos}""")
             return
@@ -44,22 +44,24 @@ class MapWrapper(object):
             raise CollisionError(pos)
         self.map[pos.y][pos.x].t = entity
         entity.pos = pos
-        self.map_events_deltas.append({
-            "type": "add_entity",
-            "pos": str(pos),
-            "entity": self.sprites.index(entity.sprite)
-        })
+        if not is_move:
+            self.map_events_deltas.append({
+                "type": "add_entity",
+                "pos": pos.get_json_repr(),
+                "entity": self.sprites.index(entity.sprite)
+            })
 
-    def delete_entity(self, pos, check_collision_before_delete=True):
+    def delete_entity(self, pos, is_move=False, check_collision_before_delete=True):
         if check_collision_before_delete and not self.is_colliding_pos(pos):
             print(f"""[-] - Map system - No entity to remove at {pos}""")
             return
         entity = self.map[pos.y][pos.x].t
         self.map[pos.y][pos.x].t = None
-        self.map_events_deltas.append({
-            "type": "delete_entity",
-            "pos": str(pos),
-        })
+        if not is_move:
+            self.map_events_deltas.append({
+                "type": "delete_entity",
+                "pos": pos.get_json_repr()
+            })
         return entity
 
     def move_entity(self, from_pos, to_pos, debug=False):
@@ -67,12 +69,17 @@ class MapWrapper(object):
         as it will be checked by add_entity()
         Returns True if move is successful """
         try:
-            self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t)
+            self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t, True)
         except CollisionError:
             if debug:
                 print(f"""[ ] - Map system - Could not move {self.map[from_pos.y][from_pos.x].t} to {to_pos}, colliding""")
             return False
-        entity = self.delete_entity(from_pos)
+        entity = self.delete_entity(from_pos, True)
+        self.map_events_deltas.append({
+            "type": "move_entity",
+            "from_pos": from_pos.get_json_repr(),
+            "to_pos": to_pos.get_json_repr()
+        })
         return True
 
     ########################################
@@ -130,3 +137,10 @@ class MapWrapper(object):
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized
+
+    def display_ascii(self):
+        """ Only displaying the top entity """
+        for y_idx in range(self.y_size):
+            for x_idx in range(self.x_size):
+                print(f"{str(self.get(Position(y_idx, x_idx)))}", end="")
+            print()

@@ -69,7 +69,7 @@ class Pathfinder(object):
         path = self.algo.get_shortest_path(entity.pos, to_pos)
         if not path:
             if debug:
-                print(f"""[ ] - Pathfinding system - Could not find path""")
+                print(f"""[ ] - Pathfinding system - Could not find path from {entity.pos} to {to_pos}""")
             return None
         self.queries[entity.id] = PathfindingQuery(
             entity, to_pos, path, Global.turn_idx, priority

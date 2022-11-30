@@ -18,7 +18,11 @@ class IdManager(object):
         return self.network_ids.get(engine_id, None)
 
     def get_engine_id(self, network_id):
-        return next(k for k, v in self.network_ids.items() if v == network_id)
+        try:
+            engine_id = next(k for k, v in self.network_ids.items() if v == network_id)
+        except StopIteration:
+            return None
+        return engine_id
 
     def get_players_ids(self):
         return self.network_ids

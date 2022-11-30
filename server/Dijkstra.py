@@ -76,23 +76,15 @@ class Dijkstra(object):
             self.done_nodes[node[0]] = node[1]
             if flag == 1:
                 res = []
-                # We start from the target
                 min_neighbor = node[1]
                 self.explore_neighbors_2(min_neighbor, min_neighbor.distance)
+                # Backtracking
                 while min_neighbor.distance != 1:
-                    # DEBUG:
-                    # print('-'*20)
-                    # self.dra&w_distances()
-                    # print(f"from {min_neighbor}")
                     for neighbor in min_neighbor.neighbors:
-                        # print('\t', neighbor)
                         if neighbor.distance < min_neighbor.distance:
                             min_neighbor = neighbor
-                    # min_neighbor = min(min_neighbor.neighbors, key=lambda x: x.distance)
-                    # print(f" to: {min_neighbor}")
                     res.append(min_neighbor)
-                res.reverse()
-                return [node.pos for node in res]
+                return [node.pos for node in res] + [self.target_pos]
             elif flag == 2:
                 return []
 

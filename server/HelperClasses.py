@@ -20,6 +20,9 @@ class Position(object):
     def __repr__(self):
         return f"y:{self.y}/x:{self.x}"
 
+    def get_json_repr(self):
+        return {"x": self.x, "y": self.y}
+
 
 class Tile(object):
     def __init__(self, bottomObject=None, topObject=None):

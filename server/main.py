@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/map")
+        self.map_wrapper = MapWrapper("./maps/medium")
 
         ### Networking
         self.incoming_messages = []
@@ -35,8 +35,16 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1/24  # 1/FPS
+        self.delta_time = 1/12  # 1/FPS
         Global.turn_idx = 0
+        ### Utils
+        self.pos_deltas = (
+            Position(-1, 0),
+            Position(0, 1),
+            Position(1, 0),
+            Position(0, -1)
+        )
+
         self.launch()
 
     def launch(self):
@@ -48,8 +56,8 @@ class App(object):
             self.process_living_entities()
 
             self.send_deltas()
-            self.send_full_map()  # TODO: Remove this whole map update, client should use deltas now
             self.send_players_their_position()
+            # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
 
@@ -61,8 +69,8 @@ class App(object):
     ### Message processing
 
     def add_new_player(self, client, msg):
+        self.send_full_map()
         player_pos = self.map_wrapper.get_available_position()
-        # player_pos = Position(0, 0)  # DEBUG:
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,
@@ -71,36 +79,40 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
+        self.add_pet(player)
 
-        ##### TODO, give the player a pet
-        pet_position = self.map_wrapper.get_available_position()
-        # pet_position = Position(3, 3)  # DEBUG:
-        print(f"Pet spawning at position {pet_position}")
+    def add_pet(self, player, position=None):
+        pet_position = position if position else self.map_wrapper.get_available_position()
         pet = Pet(
             id=self.id_manager.create_new_id(),
             pos=pet_position,
-            owner_id=player.id
+            owner=player
         )
         self.living_entities[pet.id] = pet
         self.map_wrapper.add_entity(pet.pos, pet)
+        self.living_entities[player.id].pets.append(pet)
+        print(f"Pet spawned at position {pet_position}")
 
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
-        player_pos = self.living_entities[engine_id].pos
+        player = self.living_entities[engine_id]
         if msg["key"] == "ArrowUp":
-            new_pos = Position(player_pos.y - 1, player_pos.x)
-        elif msg["key"] == "ArrowDown":
-            new_pos = Position(player_pos.y + 1, player_pos.x)
-        elif msg["key"] == "ArrowLeft":
-            new_pos = Position(player_pos.y, player_pos.x - 1)
+            new_pos = player.pos + self.pos_deltas[0]
+            player.direction = 0
         elif msg["key"] == "ArrowRight":
-            new_pos = Position(player_pos.y, player_pos.x + 1)
-        else:
-            # Not a movement
+            new_pos = player.pos + self.pos_deltas[1]
+            player.direction = 1
+        elif msg["key"] == "ArrowDown":
+            new_pos = player.pos + self.pos_deltas[2]
+            player.direction = 2
+        elif msg["key"] == "ArrowLeft":
+            new_pos = player.pos + self.pos_deltas[3]
+            player.direction = 3
+        else:  # Not a movement
             return
         # No need to check for collisions
         # we just ignore if the move isn't possible
-        self.map_wrapper.move_entity(player_pos, new_pos)
+        self.map_wrapper.move_entity(player.pos, new_pos)
 
     ########################################3
     ### Networking
@@ -123,29 +135,39 @@ class App(object):
         """ Send map and game events deltas """
         while len(self.map_wrapper.map_events_deltas) > 0:
             delta = self.map_wrapper.map_events_deltas.pop(0)
+            delta["msg_type"] = "delta"
             delta["turn_idx"] = Global.turn_idx
-            # DEBUG:
-            # print("\tDelta: ", end='')
-            # pprint(delta)
             self.server.send_message_to_all(json.dumps(delta))
 
     def send_full_map(self):
         map = self.map_wrapper.serialize()
-        message = {"type": "init_map", "sprites_table": self.map_wrapper.sprites, "map": map}
+        message = {"msg_type": "init_map", "map": map}
         self.server.send_message_to_all(json.dumps(message))
 
     def send_players_their_position(self):
         for client in self.server.clients:
-            pos = self.living_entities[self.id_manager.get_engine_id(client["id"])].pos
-            msg = {"msg_type": "player_pos", "player_y": pos.y, "player_x": pos.x}
+            engine_id = self.id_manager.get_engine_id(client["id"])
+            if engine_id is None:
+                continue
+            pos = self.living_entities[engine_id].pos
+            msg = {"msg_type": "player_pos", "pos_y": pos.y, "pos_x": pos.x}
             self.server.send_message(client, json.dumps(msg))
 
     def on_client_leave(self, client, server):
+        print("left")
         engine_id = self.id_manager.get_engine_id(client["id"])
+        # Remove all messages from this player in the message queue
+        tmp = []
+        for idx, (tmp_client, msg) in enumerate(self.incoming_messages):
+            if tmp_client["id"] != client["id"]:
+                tmp.append((tmp_client, msg))
+        self.incoming_messages = tmp
+
         player = self.living_entities.pop(engine_id)
         self.map_wrapper.delete_entity(player.pos)
 
     def on_msg_received(self, client, server, message):
+        # print(message)  # DEBUG:
         self.incoming_messages.append((client, message))
 
 

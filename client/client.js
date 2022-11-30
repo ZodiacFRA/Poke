@@ -1,31 +1,35 @@
 "restric mode";
 
-const imagesPath = ["img/ground.png", "img/wall.png", "img/player.png"];
 const URL = "localhost";
 const PORT = 50000;
 const SCREEN_WIDTH = 720;
 const SCREEN_HEIGHT = 480;
 const PLAYER_ID = "UnDesSix";
-const TILE_SIZE = 16;
+const TILE_SIZE = 32;
+const imgPathArray = [
+  "img/ground.png",
+  "img/wall.png",
+  "img/scientist.png",
+  "img/pet.png",
+  "img/player.png",
+];
 
-// WORK IN PROGRESS
-const character = {
-  image: () => {
-    return image();
-  },
-};
+class image {
+  constructor(path) {
+    this.obj = new Image();
+    this.obj.src = path;
+    if (this.obj.height > TILE_SIZE || this.obj.width > TILE_SIZE)
+      this.isForeground = true;
+  }
+}
 
-// WORK IN PROGRESS
-const game = {
-  map: {
-    content: null,
-    width: 0,
-    height: null,
-    sprites: null,
-  },
+const map = {
+  content: null,
+  width: 0,
+  height: null,
   playerMoved: true,
 
-  movePlayer: function() {
+  movePlayer: function () {
     this.playerMoved = false;
     for (let i = 0; i < display.tileSize; i++) {
       //
@@ -33,21 +37,12 @@ const game = {
   },
 };
 
-class image {
-  constructor(path) {
-    this.obj = new Image();
-    this.obj.src = path;
-    if (obj.height > TILE_SIZE || obj.width > TILE_SIZE)
-      this.isForeground = true;
-  }
-}
-
 const keyboard = {
-  listen: function() {
+  listen: function () {
     window.addEventListener("keydown", (e) => {
       server.msgToServer = {
         msg_type: "key_input",
-        key: e.key
+        key: e.key,
       };
       server.connection.send(JSON.stringify(server.msgToServer));
     });
@@ -59,16 +54,16 @@ const server = {
   msgFromServer: null,
   msgToServer: null,
 
-  connect: function() {
+  connect: function () {
     this.msgToServer = {
       msg_type: "create_player",
-      player_name: PLAYER_ID
+      player_name: PLAYER_ID,
     };
     this.connection.onopen = () =>
       this.connection.send(JSON.stringify(this.msgToServer));
   },
 
-  listen: function() {
+  listen: function () {
     this.connect();
 
     this.connection.onerror = (error) => {
@@ -83,14 +78,21 @@ const server = {
     };
   },
 
-  parseMsg: function() {
-    switch (this.msgFromServer.type) {
+  parseMsg: function () {
+    switch (this.msgFromServer.msg_type) {
       case "init_map":
-        game.map.content = this.msgFromServer.map;
-        game.map.height = game.map.content.bottom.length;
-        game.map.width = game.map.content.bottom[0].length;
-        game.map.sprites = this.msgFromServer.sprites_table;
+        map.content = this.msgFromServer.map;
+        map.height = map.content.bottom.length;
+        map.width = map.content.bottom[0].length;
+        display.setViewport(map.width, map.height); // Temporary as viewport should be always fix
+        // if (player.isUninitialized()) player.initPosition();
+        // else player.getDirection();
         display.drawMap();
+        break;
+      case "delta":
+        console.log(this.msgFromServer);
+        display.updateMap(this.msgFromServer);
+        break;
     }
   },
 };
@@ -100,43 +102,139 @@ const display = {
   ctx: null,
   images: [],
 
-  init: function() {
+  init: function () {
     this.setViewport();
     this.setContext();
-    this.loadImages();
+    this.loadImages().then(() => display.drawMap());
   },
 
-  setViewport: function() {
+  setViewport: function (width, height) {
     this.viewport = document.getElementById("viewport");
-    this.viewport.width = SCREEN_WIDTH;
-    this.viewport.height = SCREEN_HEIGHT;
+    this.viewport.width = width * TILE_SIZE;
+    this.viewport.height = height * TILE_SIZE;
   },
 
-  setContext: function() {
+  setContext: function () {
     this.ctx = this.viewport.getContext("2d");
   },
 
-  loadImages: function() {
-    for (var i = 0; i < imagesPath.length; i++) {
-      this.images.push(new Image());
-      this.images[i].src = imagesPath[i];
+  loadImages: async function () {
+    // create an array for promises
+    const promiseArray = [];
+
+    for (let imgPath of imgPathArray) {
+      promiseArray.push(
+        new Promise((resolve) => {
+          const img = new image(imgPath);
+          img.obj.onload = function () {
+            resolve();
+          };
+          this.images.push(img);
+        })
+      );
+    }
+    await Promise.all(promiseArray); // wait for all the images to be loaded
+    return this.images;
+  },
+
+  drawMap: function () {
+    for (var y = 0; y < map.height; y++) {
+      for (var x = 0; x < map.width; x++) {
+        if (map.content.bottom[y][x] === 0)
+          this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
+        if (map.content.top[y][x] == 1)
+          this.ctx.drawImage(this.images[1].obj, x * TILE_SIZE, y * TILE_SIZE);
+      }
     }
   },
 
-  // NEED TP INSERT SEUB FUNCTION INSTEAD
-  drawMap: function() {
-    for (var y = 0; y < game.map.height; y++) {
-      for (var x = 0; x < game.map.width; x++) {
-        // DRAW BACKGROUND
-        this.ctx.drawImage(this.images[1], x * TILE_SIZE, y * TILE_SIZE);
-        // DRAW OBJECT
-
-        // DRAW FOREGROUND
-      }
+  updateMap: function (msgFromServer) {
+    switch (msgFromServer.type) {
+      case "add_entity":
+        const tmp = msgFromServer.entity + 1; // + 1 is temporary using pikachu instead of player (32x32 is better)
+        map.content.top[msgFromServer.pos.y][msgFromServer.pos.x] = tmp;
+        this.ctx.drawImage(
+          this.images[tmp].obj, // + 1 is temporary using pikachu instead of player (32x32 is better)
+          msgFromServer.pos.x * TILE_SIZE,
+          msgFromServer.pos.y * TILE_SIZE
+        );
+        break;
+      case "delete_entity":
+        this.ctx.drawImage(
+          this.images[0].obj,
+          msgFromServer.pos.x * TILE_SIZE,
+          msgFromServer.pos.y * TILE_SIZE
+        );
+        break;
+      case "move_entity":
+        const entityBot =
+          map.content.bottom[msgFromServer.from_pos.y][
+            msgFromServer.from_pos.x
+          ];
+        const entityTop =
+          map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
+        console.log(entityBot, entityTop);
+        map.content.top[msgFromServer.to_pos.y][msgFromServer.to_pos.x] =
+          map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
+        map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x] =
+          "";
+        this.ctx.drawImage(
+          this.images[entityBot].obj,
+          msgFromServer.from_pos.x * TILE_SIZE,
+          msgFromServer.from_pos.y * TILE_SIZE
+        );
+        this.ctx.drawImage(
+          this.images[entityTop].obj,
+          msgFromServer.to_pos.x * TILE_SIZE,
+          msgFromServer.to_pos.y * TILE_SIZE
+        );
+        break;
     }
   },
 };
 
+const player = {
+  position: {
+    x: -1,
+    y: -1,
+  },
+
+  initPosition: function () {
+    this.position = this.getPosition();
+  },
+
+  isUninitialized: function () {
+    if (this.position.x === -1) return true;
+    else return false;
+  },
+
+  getPosition: function () {
+    position = { x: 0, y: 0 };
+    for (var y = 0; y < map.height; y++) {
+      for (var x = 0; x < map.width; x++) {
+        if (map.content.top[y][x] == 2) {
+          position.x = x;
+          position.y = y;
+          return position;
+        }
+      }
+    }
+  },
+
+  getDirection: function () {
+    xOffset = this.getPosition().x - this.position.x;
+    yOffset = this.getPosition().y - this.position.y;
+    console.log(xOffset, yOffset);
+
+    if (yOffset === 1) return "down";
+    else if (yOffset === -1) return "up";
+    else if (xOffset === 1) return "right";
+    else if (xOffset === -1) return "left";
+    else return "";
+  },
+};
+
 display.init();
+
 server.listen();
 keyboard.listen();
