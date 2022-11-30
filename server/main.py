@@ -56,7 +56,7 @@ class App(object):
             self.process_living_entities()
 
             self.send_deltas()
-            self.send_players_their_position()
+            # self.send_players_their_position()
             # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
@@ -79,7 +79,7 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
-        self.add_pet(player)
+        # self.add_pet(player)
 
     def add_pet(self, player, position=None):
         pet_position = position if position else self.map_wrapper.get_available_position()
