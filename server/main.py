@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/medium")
+        self.map_wrapper = MapWrapper("./maps/map") # (Matthieu: Let's use big map)
 
         ### Networking
         self.incoming_messages = []
@@ -56,7 +56,7 @@ class App(object):
             self.process_living_entities()
 
             self.send_deltas()
-            # self.send_players_their_position()
+            # self.send_players_their_position() # (Matthieu: currently useless)
             # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
@@ -79,7 +79,7 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
-        # self.add_pet(player)
+        # self.add_pet(player)  # (Matthieu: I hate animals)
 
     def add_pet(self, player, position=None):
         pet_position = position if position else self.map_wrapper.get_available_position()
