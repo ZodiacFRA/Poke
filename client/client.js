@@ -2,8 +2,8 @@
 
 const URL = "localhost";
 const PORT = 50000;
-const SCREEN_WIDTH = 720;
-const SCREEN_HEIGHT = 480;
+const SCREEN_WIDTH = 15;
+const SCREEN_HEIGHT = 9;
 const PLAYER_ID = "UnDesSix";
 const TILE_SIZE = 32;
 const FPS = 30;
@@ -90,8 +90,6 @@ const server = {
         map.content = this.msgFromServer.map;
         map.height = map.content.bottom.length;
         map.width = map.content.bottom[0].length;
-        app.setViewport(map.width, map.height);
-        app.initMap();
         break;
       case "delta":
         app.updateMap(this.msgFromServer);
@@ -111,10 +109,10 @@ const app = {
     this.loadImages().then(() => server.listen());
   },
 
-  setViewport: function (width, height) {
+  setViewport: function () {
     this.viewport = document.getElementById("viewport");
-    this.viewport.width = width * TILE_SIZE;
-    this.viewport.height = height * TILE_SIZE;
+    this.viewport.width = SCREEN_WIDTH * TILE_SIZE;
+    this.viewport.height = SCREEN_HEIGHT * TILE_SIZE;
   },
 
   setContext: function () {
@@ -141,57 +139,46 @@ const app = {
     return this.images;
   },
 
-  initMap: function () {
-    for (var y = 0; y < map.height; y++) {
-      for (var x = 0; x < map.width; x++) {
-        if (map.content.bottom[y][x] === 0)
+  displayPlayer: function () {
+    this.ctx.drawImage(
+      this.images[2].obj,
+      Math.trunc(SCREEN_WIDTH / 2) * TILE_SIZE,
+      Math.trunc(SCREEN_HEIGHT / 2) * TILE_SIZE
+    );
+    // console.log("player displayed");
+  },
+
+  displayMap: function () {
+    const topLeft = {
+      x: player.position.x - Math.trunc(SCREEN_WIDTH / 2),
+      y: player.position.y - Math.trunc(SCREEN_HEIGHT / 2),
+    };
+
+    for (var y = 0; y < SCREEN_HEIGHT; y++) {
+      for (var x = 0; x < SCREEN_WIDTH; x++) {
+        if (map.content.bottom[topLeft.y + y][topLeft.x + x] === 0)
           this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
-        if (map.content.top[y][x] == 1)
+        if (map.content.top[topLeft.y + y][topLeft.x + x] == 1)
           this.ctx.drawImage(this.images[1].obj, x * TILE_SIZE, y * TILE_SIZE);
       }
     }
+    // console.log("map displayed");
   },
 
   updateMap: function (msgFromServer) {
     switch (msgFromServer.type) {
       case "add_entity":
-        map.content.top[msgFromServer.pos.y][msgFromServer.pos.x] =
-          msgFromServer.entity;
-        this.ctx.drawImage(
-          this.images[msgFromServer.entity].obj,
-          msgFromServer.pos.x * TILE_SIZE,
-          msgFromServer.pos.y * TILE_SIZE
-        );
+        player.setPosition(msgFromServer.pos);
+        this.displayMap("initialization");
+        this.displayPlayer();
         break;
       case "delete_entity":
-        this.ctx.drawImage(
-          this.images[0].obj,
-          msgFromServer.pos.x * TILE_SIZE,
-          msgFromServer.pos.y * TILE_SIZE
-        );
+        player.setPosition({ x: -1, y: -1 });
         break;
       case "move_entity":
-        const entityBot =
-          map.content.bottom[msgFromServer.from_pos.y][
-            msgFromServer.from_pos.x
-          ];
-        const entityTop =
-          map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
-        console.log(entityBot, entityTop);
-        map.content.top[msgFromServer.to_pos.y][msgFromServer.to_pos.x] =
-          map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
-        map.content.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x] =
-          "";
-        this.ctx.drawImage(
-          this.images[entityBot].obj,
-          msgFromServer.from_pos.x * TILE_SIZE,
-          msgFromServer.from_pos.y * TILE_SIZE
-        );
-        this.ctx.drawImage(
-          this.images[entityTop].obj,
-          msgFromServer.to_pos.x * TILE_SIZE,
-          msgFromServer.to_pos.y * TILE_SIZE
-        );
+        player.setPosition(msgFromServer.to_pos);
+        this.displayMap();
+        this.displayPlayer();
         break;
     }
   },

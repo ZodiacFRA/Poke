@@ -1,21 +1,25 @@
-/* html, */
-/* body, */
+html,
+body,
 #viewport {
   padding: 0;
-  margin: 0;
-  border: 0;
-  background-color: rgb(2, 2, 2);
-  /* height: 100vh; */
-  /* width: 100vw; */
+  margin: auto;
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgb(51, 51, 51);
+  width: 90vw;
 }
-/* html {
+html {
   overflow: hidden;
-} */
-
+}
+/* 
 body {
   background-color: rgb(33, 31, 31);
 }
-/* canvas {
+canvas {
   padding-left: 0;
   padding-right: 0;
   margin-left: auto;
