@@ -13,7 +13,7 @@ const imgPathArray = [
   "img/wall.png",
   "img/scientist.png",
   "img/pet.png",
-  // "img/player.png",
+  "img/player.png",
 ];
 
 class image {
@@ -139,12 +139,27 @@ const app = {
     return this.images;
   },
 
-  displayPlayer: function () {
-    this.ctx.drawImage(
-      this.images[2].obj,
-      Math.trunc(SCREEN_WIDTH / 2) * TILE_SIZE,
-      Math.trunc(SCREEN_HEIGHT / 2) * TILE_SIZE
-    );
+  displayPlayer: function (direction) {
+    const coord = {
+      x: Math.trunc(SCREEN_WIDTH / 2) * TILE_SIZE,
+      y: Math.trunc(SCREEN_HEIGHT / 2) * TILE_SIZE - 16,
+    };
+    const img = this.images[4].obj;
+    switch (direction) {
+      case "spawn":
+      case "down":
+        this.ctx.drawImage(img, 0, 0, 32, 48, coord.x, coord.y, 32, 48);
+        break;
+      case "up":
+        this.ctx.drawImage(img, 0, 144, 32, 48, coord.x, coord.y, 32, 48);
+        break;
+      case "left":
+        this.ctx.drawImage(img, 0, 48, 32, 48, coord.x, coord.y, 32, 48);
+        break;
+      case "right":
+        this.ctx.drawImage(img, 0, 96, 32, 48, coord.x, coord.y, 32, 48);
+        break;
+    }
     // console.log("player displayed");
   },
 
@@ -169,8 +184,8 @@ const app = {
     switch (msgFromServer.type) {
       case "add_entity":
         player.setPosition(msgFromServer.pos);
-        this.displayMap("initialization");
-        this.displayPlayer();
+        this.displayMap();
+        this.displayPlayer("spawn");
         break;
       case "delete_entity":
         player.setPosition({ x: -1, y: -1 });
@@ -178,7 +193,9 @@ const app = {
       case "move_entity":
         player.setPosition(msgFromServer.to_pos);
         this.displayMap();
-        this.displayPlayer();
+        this.displayPlayer(
+          player.getDirection(msgFromServer.from_pos, msgFromServer.to_pos)
+        );
         break;
     }
   },
