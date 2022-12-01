@@ -154,8 +154,8 @@ const app = {
       y: player.position.y - Math.trunc(SCREEN_HEIGHT / 2),
     };
 
-    for (var y = 0; y < SCREEN_HEIGHT; y++) {
-      for (var x = 0; x < SCREEN_WIDTH; x++) {
+    for (let y = 0; y < SCREEN_HEIGHT; y++) {
+      for (let x = 0; x < SCREEN_WIDTH; x++) {
         if (map.content.bottom[topLeft.y + y][topLeft.x + x] === 0)
           this.ctx.drawImage(this.images[0].obj, x * TILE_SIZE, y * TILE_SIZE);
         if (map.content.top[topLeft.y + y][topLeft.x + x] == 1)
