@@ -136,6 +136,8 @@ class App(object):
 
     def send_deltas(self):
         """ Send map and game events deltas """
+        if len(self.map_wrapper.map_events_deltas) == 0:
+            return
         delta = {"msg_type": "delta", "turn_idx": Global.turn_idx, "data": []}
         while len(self.map_wrapper.map_events_deltas) > 0:
             delta["data"].append(self.map_wrapper.map_events_deltas.pop(0))
