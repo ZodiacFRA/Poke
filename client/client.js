@@ -92,7 +92,8 @@ const server = {
         map.width = map.content.bottom[0].length;
         break;
       case "delta":
-        app.updateMap(this.msgFromServer);
+        for (let i = 0; i < this.msgFromServer.data.length; i++)
+          app.updateMap(this.msgFromServer.data[i]);
         break;
     }
   },
