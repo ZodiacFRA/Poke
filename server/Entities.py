@@ -1,5 +1,7 @@
 import random
 import collections
+
+from ErrorClasses import ImpossibleMoveError
 """ For now all Entities have a position, but only the living entities get an id
 """
 
@@ -55,11 +57,11 @@ class Pet(LivingEntity):
         self.collider = True
         self.owner = owner
         self.owner_previous_positions = collections.deque(maxlen=4)
-        self.distance_from_owner = 1
-        self.distance_change_turns_duration = 10
+        self.distance_from_owner = 2
         self.moves_nbr = 0
 
     def do_turn(self, map_wrapper, living_entities):
+        old_pos = self.pos
         if self.owner_previous_positions:
             idx = min(len(self.owner_previous_positions) - 1, len(self.owner_previous_positions) - self.distance_from_owner)
             target_pos = self.owner_previous_positions[idx]
@@ -74,8 +76,8 @@ class Pet(LivingEntity):
                 done_move = map_wrapper.move_entity(self.pos, next_move)
                 if done_move:
                     self.moves_nbr += 1
-                    if self.moves_nbr > self.distance_change_turns_duration:
-                        self.moves_nbr = 0
-                        self.distance_change_turns_duration = random.randint(5, 20)
-                        self.distance_from_owner = random.randint(1, len(self.owner_previous_positions))
-                        # print(f"distance change to: {self.distance_from_owner}, will change in {self.distance_change_turns_duration}")  # DEBUG:
+                    direction = old_pos.get_direction(next_move)
+                    if direction is None:
+                        # raise ImpossibleMoveError(old_pos, next_move)
+                        print("[-] - TODO: Fix Pet impossible move")
+                    self.direction = direction

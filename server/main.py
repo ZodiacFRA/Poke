@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/map") # (Matthieu: Let's use big map)
+        self.map_wrapper = MapWrapper("./maps/map")
 
         ### Networking
         self.incoming_messages = []
@@ -29,8 +29,11 @@ class App(object):
             "key_input": self.do_movement
         }
         self.delta_messages = []
-
-        self.server = WebsocketServer(host='localhost', port=50000, loglevel=logging.INFO)
+        self.server = WebsocketServer(
+            host='localhost',
+            port=50000,
+            loglevel=logging.INFO
+        )
         self.server.set_fn_client_left(self.on_client_leave)
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
@@ -133,11 +136,10 @@ class App(object):
 
     def send_deltas(self):
         """ Send map and game events deltas """
+        delta = {"msg_type": "delta", "turn_idx": Global.turn_idx, "data": []}
         while len(self.map_wrapper.map_events_deltas) > 0:
-            delta = self.map_wrapper.map_events_deltas.pop(0)
-            delta["msg_type"] = "delta"
-            delta["turn_idx"] = Global.turn_idx
-            self.server.send_message_to_all(json.dumps(delta))
+            delta["data"].append(self.map_wrapper.map_events_deltas.pop(0))
+        self.server.send_message_to_all(json.dumps(delta))
 
     def send_full_map(self):
         map = self.map_wrapper.serialize()

@@ -33,9 +33,3 @@ def get_map_from_file(map_filepath):
                 ))
         map.append(map_line)
     return map, y_size, x_size
-
-
-
-def save_gamestate_to_file(filepath, gamestate):
-    """ TODO """
-    pass
