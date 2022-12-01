@@ -38,7 +38,7 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1/12  # 1/FPS
+        self.delta_time = 1/4  # 1/UpdatePerSecond
         Global.turn_idx = 0
         ### Utils
         self.pos_deltas = (
@@ -121,8 +121,12 @@ class App(object):
     ### Networking
 
     def process_incoming_messages(self):
+        # Clients can only do one input per turn, use the first one
+        done_clients = []
         while len(self.incoming_messages) > 0:
             client, msg = self.incoming_messages.pop()
+            if client["id"] in done_clients:
+                continue
             try:
                 msg = json.loads(msg)
             except json.decoder.JSONDecodeError as e:
@@ -133,6 +137,7 @@ class App(object):
                     print(f"""[-] - Invalid message type: {msg["msg_type"]} in {msg}""")
                 else:
                     func(client, msg)
+                    done_clients.append(client["id"])
 
     def send_deltas(self):
         """ Send map and game events deltas """
