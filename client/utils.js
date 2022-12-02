@@ -5,7 +5,7 @@ const imgPathArray = [
   "sprites/player_right.png",
   "sprites/player_down.png",
   "sprites/player_left.png",
-  // "sprites/pet.png",
+  "sprites/pet.png",
   // "sprites/scientist.png",
 ];
 
