@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/medium")
+        self.map_wrapper = MapWrapper("./maps/map")
 
         ### Networking
         self.incoming_messages = []
@@ -59,7 +59,7 @@ class App(object):
             self.process_living_entities()
 
             self.send_deltas()
-            # self.send_players_their_position() # (Matthieu: currently useless)
+            self.send_players_their_position() # TODO: Only send when player has moved
             # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
