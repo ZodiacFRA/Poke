@@ -18,7 +18,7 @@ class MapWrapper(object):
             "lava_0"
         ]
         self.map, self.y_size, self.x_size = get_map_from_file(map_filepath)
-        self.map_events_deltas = []
+        self.map_events = []
 
     ########################################
     ### Map Modifiers
@@ -28,8 +28,8 @@ class MapWrapper(object):
     # Only top entities can be affected (added / moved / deleted)
     # as we consider bottom entities to be fixed by map creation (for now)
     #
-    # Those functions also need to keep track of their effect in self.map_events_deltas,
-    # in order to build the map_events_deltas to be sent to the clients
+    # Those functions also need to keep track of their effect in self.map_events,
+    # in order to build the map_events to be sent to the clients
     #
     # To sum it up, each of those functions NEEDS to do 3 things:
     # - Action in the self.map object
@@ -45,7 +45,7 @@ class MapWrapper(object):
         self.map[pos.y][pos.x].t = entity
         entity.pos = pos
         if not is_move:
-            self.map_events_deltas.append({
+            self.map_events.append({
                 "type": "add_entity",
                 "pos": pos.get_json_repr(),
                 "entity": self.sprites.index(entity.sprite)
@@ -58,7 +58,7 @@ class MapWrapper(object):
         entity = self.map[pos.y][pos.x].t
         self.map[pos.y][pos.x].t = None
         if not is_move:
-            self.map_events_deltas.append({
+            self.map_events.append({
                 "type": "delete_entity",
                 "pos": pos.get_json_repr()
             })
@@ -75,7 +75,7 @@ class MapWrapper(object):
                 print(f"""[ ] - Map system - Could not move {self.map[from_pos.y][from_pos.x].t} to {to_pos}, colliding""")
             return False
         entity = self.delete_entity(from_pos, True)
-        self.map_events_deltas.append({
+        self.map_events.append({
             "type": "move_entity",
             "from_pos": from_pos.get_json_repr(),
             "to_pos": to_pos.get_json_repr()

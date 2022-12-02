@@ -58,8 +58,7 @@ class App(object):
 
             self.process_living_entities()
 
-            self.send_deltas()
-            self.send_players_their_position() # TODO: Only send when player has moved
+            self.send_update()
             # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
             time.sleep(self.delta_time - (time.time() - start_time))
@@ -139,28 +138,33 @@ class App(object):
                     func(client, msg)
                     done_clients.append(client["id"])
 
-    def send_deltas(self):
+    def send_update(self):
         """ Send map and game events deltas """
-        if len(self.map_wrapper.map_events_deltas) == 0:
+        if len(self.map_wrapper.map_events) == 0:
             return
-        delta = {"msg_type": "delta", "turn_idx": Global.turn_idx, "data": []}
-        while len(self.map_wrapper.map_events_deltas) > 0:
-            delta["data"].append(self.map_wrapper.map_events_deltas.pop(0))
-        self.server.send_message_to_all(json.dumps(delta))
-
-    def send_full_map(self):
-        map = self.map_wrapper.serialize()
-        message = {"msg_type": "init_map", "map": map}
-        self.server.send_message_to_all(json.dumps(message))
-
-    def send_players_their_position(self):
+        # Prepare the base of the message (which will be sent to every player)
+        delta = {
+            "msg_type": "update",
+            "turn_idx": Global.turn_idx,
+            "data": [],
+            "player_pos": {"y": -1, "x": -1}
+        }
+        while len(self.map_wrapper.map_events) > 0:
+            delta["data"].append(self.map_wrapper.map_events.pop(0))
+        # Add the position of each player and send him the full message
         for client in self.server.clients:
             engine_id = self.id_manager.get_engine_id(client["id"])
             if engine_id is None:
                 continue
             pos = self.living_entities[engine_id].pos
-            msg = {"msg_type": "player_pos", "pos_y": pos.y, "pos_x": pos.x}
-            self.server.send_message(client, json.dumps(msg))
+            delta["player_pos"]["y"] = pos.y
+            delta["player_pos"]["x"] = pos.x
+            self.server.send_message(client, json.dumps(delta))
+
+    def send_full_map(self):
+        map = self.map_wrapper.serialize()
+        message = {"msg_type": "init_map", "map": map}
+        self.server.send_message_to_all(json.dumps(message))
 
     def on_client_leave(self, client, server):
         print("left")

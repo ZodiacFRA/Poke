@@ -47,41 +47,6 @@ const app = {
     this.viewport.height = Math.trunc(SCREEN_HEIGHT_TILES * TILE_SIZE);
   },
 
-  displayMap: function() {
-    const topLeftTileIdx = {
-      x: Math.max(this.player_pos.x - Math.trunc(SCREEN_WIDTH_TILES / 2), 0),
-      y: Math.max(this.player_pos.y - Math.trunc(SCREEN_HEIGHT_TILES / 2), 0)
-    };
-    // console.log("top left tile idxs:", topLeftTileIdx.y, topLeftTileIdx.y);
-    for (let y = 0; y < Math.min(SCREEN_HEIGHT_TILES, this.map.size_y); y++) {
-      for (let x = 0; x < Math.min(SCREEN_WIDTH_TILES, this.map.size_x); x++) {
-        // console.log('-------------', "y:", topLeftTileIdx.y + y, "x:", topLeftTileIdx.x + x);
-        var bottom_idx = this.map.bottom[topLeftTileIdx.y + y][topLeftTileIdx.x + x]
-        if (!isNaN(bottom_idx) && bottom_idx <= this.sprites.length) {
-          // console.log("bottom img path:", this.sprites[bottom_idx].obj.src);
-          this.ctx.drawImage(this.sprites[bottom_idx].obj, x * TILE_SIZE, y * TILE_SIZE);
-        }
-        var top_idx = this.map.top[topLeftTileIdx.y + y][topLeftTileIdx.x + x]
-        if (top_idx != "" && top_idx <= this.sprites.length) {
-          // console.log("top img path:", this.sprites[top_idx].obj.src);
-          // Here request the animation frames to the frame manager
-          if (top_idx == 2) {
-            // TODO: We should not have to respecify the player position in pixels,
-            // only a pixel delta to the tile he is on to accout for the different sprite size,
-            // but the tile he is on should be centered anytime
-            const coord = {
-              x: Math.trunc(SCREEN_WIDTH_TILES / 2) * TILE_SIZE,
-              y: Math.trunc(SCREEN_HEIGHT_TILES / 2) * TILE_SIZE - 16,
-            };
-            this.ctx.drawImage(this.sprites[2].obj, 0, 0, 32, 48, coord.x, coord.y, 32, 48);
-          } else {
-            this.ctx.drawImage(this.sprites[top_idx].obj, x * TILE_SIZE, y * TILE_SIZE);
-          }
-        }
-      }
-    }
-  },
-
   updateMap: function(msgFromServer) {
     switch (msgFromServer.type) {
       case "add_entity":
@@ -97,6 +62,34 @@ const app = {
         this.map.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x] = ""
         this.map.top[msgFromServer.to_pos.y][msgFromServer.to_pos.x] = entity
         break;
+    }
+  },
+
+  displayMap: function() {
+    const topLeftTileIdx = {
+      x: Math.max(this.player_pos.x - Math.trunc(SCREEN_WIDTH_TILES / 2), 0),
+      y: Math.max(this.player_pos.y - Math.trunc(SCREEN_HEIGHT_TILES / 2), 0)
+    };
+    // console.log("top left tile idxs:", topLeftTileIdx.y, topLeftTileIdx.x);
+    for (let y = 0; y < Math.min(SCREEN_HEIGHT_TILES, this.map.size_y); y++) {
+      for (let x = 0; x < Math.min(SCREEN_WIDTH_TILES, this.map.size_x); x++) {
+        // console.log('-------------', "y:", topLeftTileIdx.y + y, "x:", topLeftTileIdx.x + x);
+        var bottom_idx = this.map.bottom[topLeftTileIdx.y + y][topLeftTileIdx.x + x]
+        if (!isNaN(bottom_idx) && bottom_idx <= this.sprites.length) {
+          // console.log("bottom img path:", this.sprites[bottom_idx].obj.src);
+          this.ctx.drawImage(this.sprites[bottom_idx].obj, x * TILE_SIZE, y * TILE_SIZE);
+        }
+        var top_idx = this.map.top[topLeftTileIdx.y + y][topLeftTileIdx.x + x]
+        if (top_idx != "" && top_idx <= this.sprites.length) {
+          // console.log("top img path:", this.sprites[top_idx].obj.src);
+          // Here request the animation frames to the frame manager
+          if (top_idx == 2) {
+            this.ctx.drawImage(this.sprites[2].obj, 0, 0, 32, 48, x * TILE_SIZE, y * TILE_SIZE - 16, 32, 48);
+          } else {
+            this.ctx.drawImage(this.sprites[top_idx].obj, x * TILE_SIZE, y * TILE_SIZE);
+          }
+        }
+      }
     }
   }
 

@@ -40,15 +40,12 @@ const server = {
         app.map = this.msgFromServer.map;
         app.displayMap();
         break;
-      case "delta":
+      case "update":
+        app.player_pos.y = this.msgFromServer.player_pos.y
+        app.player_pos.x = this.msgFromServer.player_pos.x
         for (let i = 0; i < this.msgFromServer.data.length; i++) {
           app.updateMap(this.msgFromServer.data[i]);
         }
-        app.displayMap();
-        break;
-      case "player_pos":
-        app.player_pos.y = this.msgFromServer.pos_y
-        app.player_pos.x = this.msgFromServer.pos_x
         app.displayMap();
         break;
     }
