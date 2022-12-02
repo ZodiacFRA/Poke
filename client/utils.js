@@ -1,9 +1,12 @@
 const imgPathArray = [
-  "img/ground.png",
-  "img/wall.png",
-  "img/player.png",
-  "img/pet.png",
-  "img/scientist.png",
+  "sprites/ground.png",
+  "sprites/wall.png",
+  "sprites/player_up.png",
+  "sprites/player_right.png",
+  "sprites/player_down.png",
+  "sprites/player_left.png",
+  // "sprites/pet.png",
+  // "sprites/scientist.png",
 ];
 
 class image {

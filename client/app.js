@@ -11,9 +11,11 @@ const app = {
   viewport: null,
   ctx: null,
   // data
-  player_pos: {
-    x: 0,
-    y: 0
+  player: {
+    pos: {
+      x: 0,
+      y: 0
+    },
   },
   map: null,
 
@@ -67,10 +69,10 @@ const app = {
 
   displayMap: function() {
     const topLeftTileIdx = {
-      x: Math.max(this.player_pos.x - Math.trunc(SCREEN_WIDTH_TILES / 2), 0),
-      y: Math.max(this.player_pos.y - Math.trunc(SCREEN_HEIGHT_TILES / 2), 0)
+      x: Math.max(this.player.pos.x - Math.trunc(SCREEN_WIDTH_TILES / 2), 0),
+      y: Math.max(this.player.pos.y - Math.trunc(SCREEN_HEIGHT_TILES / 2), 0)
     };
-    // console.log("top left tile idxs:", topLeftTileIdx.y, topLeftTileIdx.x);
+    console.log("top left tile idxs:", topLeftTileIdx.y, topLeftTileIdx.x);
     for (let y = 0; y < Math.min(SCREEN_HEIGHT_TILES, this.map.size_y); y++) {
       for (let x = 0; x < Math.min(SCREEN_WIDTH_TILES, this.map.size_x); x++) {
         // console.log('-------------', "y:", topLeftTileIdx.y + y, "x:", topLeftTileIdx.x + x);
@@ -81,10 +83,10 @@ const app = {
         }
         var top_idx = this.map.top[topLeftTileIdx.y + y][topLeftTileIdx.x + x]
         if (top_idx != "" && top_idx <= this.sprites.length) {
-          // console.log("top img path:", this.sprites[top_idx].obj.src);
           // Here request the animation frames to the frame manager
-          if (top_idx == 2) {
-            this.ctx.drawImage(this.sprites[2].obj, 0, 0, 32, 48, x * TILE_SIZE, y * TILE_SIZE - 16, 32, 48);
+          if (top_idx > 1) {
+            console.log("top img path:", this.sprites[top_idx].obj.src);
+            this.ctx.drawImage(this.sprites[top_idx].obj, 0, 0, 32, 48, x * TILE_SIZE, y * TILE_SIZE - 16, 32, 48);
           } else {
             this.ctx.drawImage(this.sprites[top_idx].obj, x * TILE_SIZE, y * TILE_SIZE);
           }

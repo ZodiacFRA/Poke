@@ -41,8 +41,8 @@ const server = {
         app.displayMap();
         break;
       case "update":
-        app.player_pos.y = this.msgFromServer.player_pos.y
-        app.player_pos.x = this.msgFromServer.player_pos.x
+        app.player.pos.y = this.msgFromServer.player_pos.y
+        app.player.pos.x = this.msgFromServer.player_pos.x
         for (let i = 0; i < this.msgFromServer.data.length; i++) {
           app.updateMap(this.msgFromServer.data[i]);
         }

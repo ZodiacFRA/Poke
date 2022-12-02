@@ -9,34 +9,37 @@ class Entity(object):
     def __init__(self, pos):
         self.pos = pos
         self.collider = False
-        self.sprite = None
+        self.sprite_idx = None
 
     def __repr__(self):
         # Remove the <class Entities. and the >
         return f"{str(type(self))[17:-2]} - {self.pos}"
 
+    def get_sprite_idx(self):
+        return self.sprite_idx
+
 ##############################################
 
 class Ground(Entity):
-    def __init__(self, pos, sprite="ground"):
+    def __init__(self, pos, sprite_idx=0):
         super().__init__(pos)
-        self.sprite = sprite
+        self.sprite_idx = sprite_idx
 
 class Wall(Entity):
-    def __init__(self, pos, sprite="wall"):
+    def __init__(self, pos, sprite_idx=1):
         super().__init__(pos)
         self.collider = True
-        self.sprite = sprite
+        self.sprite_idx = sprite_idx
 
 ##############################################
 
 class LivingEntity(Entity):
-    def __init__(self, id, pos, speed, sprite):
+    def __init__(self, id, pos, speed, sprite_idx):
         super().__init__(pos)
         self.id = id
         self.speed = speed
         self.turn_idx = 0
-        self.sprite = sprite
+        self.sprite_idx = sprite_idx
         self.direction = 0
         # 0: Top, 1: Right, 2: Bottom, 3: Left
 
@@ -44,16 +47,20 @@ class LivingEntity(Entity):
         pass
 
 class Player(LivingEntity):
-    def __init__(self, id, pos, name, sprite="player", speed=1):
-        super().__init__(id, pos, speed, sprite)
+    def __init__(self, id, pos, name, sprite_idx=2, speed=1):
+        super().__init__(id, pos, speed, sprite_idx)
         self.collider = True
         self.name = name
         self.inventory = {}
         self.pets = []
 
+    def get_sprite_idx(self):
+        print("player", self.sprite_idx + self.direction)
+        return self.sprite_idx + self.direction
+
 class Pet(LivingEntity):
-    def __init__(self, id, pos, owner, sprite="lava_0", speed=1):
-        super().__init__(id, pos, speed, sprite)
+    def __init__(self, id, pos, owner, sprite_idx=4, speed=1):
+        super().__init__(id, pos, speed, sprite_idx)
         self.collider = True
         self.owner = owner
         self.owner_previous_positions = collections.deque(maxlen=4)

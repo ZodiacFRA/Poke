@@ -11,12 +11,6 @@ class MapWrapper(object):
     def __init__(self, map_filepath):
         super(MapWrapper, self).__init__()
         self.pathfinder = Pathfinder(self)
-        self.sprites = [
-            "ground",
-            "wall",
-            "player",
-            "lava_0"
-        ]
         self.map, self.y_size, self.x_size = get_map_from_file(map_filepath)
         self.map_events = []
 
@@ -48,7 +42,7 @@ class MapWrapper(object):
             self.map_events.append({
                 "type": "add_entity",
                 "pos": pos.get_json_repr(),
-                "entity": self.sprites.index(entity.sprite)
+                "entity": entity.get_sprite_idx()
             })
 
     def delete_entity(self, pos, is_move=False, check_collision_before_delete=True):
@@ -132,8 +126,8 @@ class MapWrapper(object):
                     print(f"[-] - Serializer error")
                 top_entity = self.map[y_idx][x_idx].t
                 bottom_entity = self.map[y_idx][x_idx].b
-                top_line.append("" if top_entity is None else self.sprites.index(top_entity.sprite))
-                bottom_line.append("" if bottom_entity is None else self.sprites.index(bottom_entity.sprite))
+                top_line.append("" if top_entity is None else top_entity.get_sprite_idx())
+                bottom_line.append("" if bottom_entity is None else bottom_entity.get_sprite_idx())
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized

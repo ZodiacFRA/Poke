@@ -156,9 +156,10 @@ class App(object):
             engine_id = self.id_manager.get_engine_id(client["id"])
             if engine_id is None:
                 continue
-            pos = self.living_entities[engine_id].pos
-            delta["player_pos"]["y"] = pos.y
-            delta["player_pos"]["x"] = pos.x
+            player = self.living_entities[engine_id]
+            delta["player_pos"]["y"] = player.pos.y
+            delta["player_pos"]["x"] = player.pos.x
+            delta["player_direction"] = player.direction
             self.server.send_message(client, json.dumps(delta))
 
     def send_full_map(self):
