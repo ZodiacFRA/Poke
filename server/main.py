@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/map")
+        self.map_wrapper = MapWrapper("./maps/small2")
 
         ### Networking
         self.incoming_messages = []
@@ -81,7 +81,7 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
-        # self.add_pet(player)  # (Matthieu: I hate animals)
+        self.add_pet(player)  # (Matthieu: I hate animals)
 
     def add_pet(self, player, position=None):
         pet_position = position if position else self.map_wrapper.get_available_position()
@@ -114,7 +114,7 @@ class App(object):
             return
         # No need to check for collisions
         # we just ignore if the move isn't possible
-        self.map_wrapper.move_entity(player.pos, new_pos)
+        move = self.map_wrapper.move_entity(player.pos, new_pos)
 
     ########################################3
     ### Networking

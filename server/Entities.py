@@ -59,22 +59,24 @@ class Player(LivingEntity):
         return self.sprite_idx + self.direction
 
 class Pet(LivingEntity):
-    def __init__(self, id, pos, owner, sprite_idx=4, speed=1):
+    def __init__(self, id, pos, owner, sprite_idx=6, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
         self.collider = True
         self.owner = owner
-        self.owner_previous_positions = collections.deque(maxlen=4)
+        self.owner_previous_positions = collections.deque(maxlen=3)
         self.distance_from_owner = 2
         self.moves_nbr = 0
 
     def do_turn(self, map_wrapper, living_entities):
+        tmp = self.pos
         old_pos = self.pos
         if self.owner_previous_positions:
-            idx = min(len(self.owner_previous_positions) - 1, len(self.owner_previous_positions) - self.distance_from_owner)
-            target_pos = self.owner_previous_positions[idx]
-        else:
-            target_pos = self.owner.pos
+            target_pos = self.owner_previous_positions[0]
+        else:  # Do not move till the owner has moved
             self.owner_previous_positions.append(self.owner.pos)
+            return
+
+        # Only add the new owner pos if it has moved
         if self.owner.pos != self.owner_previous_positions[-1]:
             self.owner_previous_positions.append(self.owner.pos)
         if self.pos != target_pos:

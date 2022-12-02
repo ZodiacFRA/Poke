@@ -89,15 +89,18 @@ class MapWrapper(object):
         # OOB -> colliding
         if pos.x < 0 or pos.x >= self.x_size or pos.y < 0 or pos.y >= self.y_size:
             return True
-        # No Floor -> colliding
-        if self.map[pos.y][pos.x].b is None:
+        try:
+            # No Floor -> colliding
+            if self.map[pos.y][pos.x].b is None:
+                return True
+            # Floor only -> Not colliding
+            if self.map[pos.y][pos.x].t is None:
+                return False
+            # Floor and Non-colliding entity -> Not colliding
+            if not self.map[pos.y][pos.x].t.collider:
+                return False
+        except IndexError:  # For non square maps, index won't exist, return True
             return True
-        # Floor only -> Not colliding
-        if self.map[pos.y][pos.x].t is None:
-            return False
-        # Floor and Non-colliding entity -> Not colliding
-        if not self.map[pos.y][pos.x].t.collider:
-            return False
         # Floor and Colliding entity -> colliding
         return True
 
@@ -121,7 +124,7 @@ class MapWrapper(object):
         for y_idx in range(self.y_size):
             top_line = []
             bottom_line = []
-            for x_idx in range(self.x_size):
+            for x_idx in range(len(self.map[y_idx])):
                 if self.map[y_idx][x_idx] is None:
                     print(f"[-] - Serializer error")
                 top_entity = self.map[y_idx][x_idx].t

@@ -84,9 +84,14 @@ class Dijkstra(object):
                         if neighbor.distance < min_neighbor.distance:
                             min_neighbor = neighbor
                     res.append(min_neighbor)
-                return [node.pos for node in res] + [self.target_pos]
+                # We need to return from the starting point, and add the target_pos at the end
+                res = [node.pos for node in res]
+                res.reverse()
+                res += [self.target_pos]
+                return res
             elif flag == 2:
                 return []
+        print(f"[ ] - Pathfinder: No path found between {self.root_node.pos} and {self.target_pos}")
 
     def draw_distances(self):
         """ Debug function, will draw an ascii representation of the map,
