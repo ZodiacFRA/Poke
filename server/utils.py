@@ -1,3 +1,5 @@
+import random
+
 from Entities import *
 from HelperClasses import Tile, Position
 
@@ -18,8 +20,9 @@ def get_map_from_file(map_filepath):
             if char == "":
                 map_line.append(Tile())
             elif char == "0":
+                sprite_idx = random.randint(0, 1)
                 map_line.append(Tile(
-                    Ground(Position(y_idx, x_idx))
+                    Ground(Position(y_idx, x_idx), sprite_idx)
                 ))
             elif char == "1":
                 map_line.append(Tile(
