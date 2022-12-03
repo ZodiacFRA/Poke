@@ -26,7 +26,7 @@ class Ground(Entity):
         self.sprite_idx = sprite_idx
 
 class Wall(Entity):
-    def __init__(self, pos, sprite_idx=1):
+    def __init__(self, pos, sprite_idx=2):
         super().__init__(pos)
         self.collider = True
         self.sprite_idx = sprite_idx
@@ -47,7 +47,7 @@ class LivingEntity(Entity):
         pass
 
 class Player(LivingEntity):
-    def __init__(self, id, pos, name, sprite_idx=2, speed=1):
+    def __init__(self, id, pos, name, sprite_idx=3, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
         self.collider = True
         self.name = name
@@ -55,11 +55,10 @@ class Player(LivingEntity):
         self.pets = []
 
     def get_sprite_idx(self):
-        print("player", self.sprite_idx + self.direction)
         return self.sprite_idx + self.direction
 
 class Pet(LivingEntity):
-    def __init__(self, id, pos, owner, sprite_idx=6, speed=1):
+    def __init__(self, id, pos, owner, sprite_idx=7, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
         self.collider = True
         self.owner = owner
@@ -68,19 +67,16 @@ class Pet(LivingEntity):
         self.moves_nbr = 0
 
     def do_turn(self, map_wrapper, living_entities):
-        tmp = self.pos
         old_pos = self.pos
-        if self.owner_previous_positions:
-            target_pos = self.owner_previous_positions[0]
-        else:  # Do not move till the owner has moved
+        if not self.owner_previous_positions:
             self.owner_previous_positions.append(self.owner.pos)
-            return
+        target_pos = self.owner_previous_positions[0]
 
         # Only add the new owner pos if it has moved
         if self.owner.pos != self.owner_previous_positions[-1]:
             self.owner_previous_positions.append(self.owner.pos)
         if self.pos != target_pos:
-            next_move = map_wrapper.pathfinder.get_next_move(self, target_pos, 0)
+            next_move = map_wrapper.pathfinder.get_next_move(self, target_pos, True, 0)
             if next_move is not None:
                 done_move = map_wrapper.move_entity(self.pos, next_move)
                 if done_move:
