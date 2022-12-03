@@ -68,6 +68,7 @@ const app = {
   },
 
   displayMap: function() {
+    this.ctx.clearRect(0, 0, this.viewport.width, this.viewport.height);
     const topLeftTileIdx = {
       x: Math.max(this.player.pos.x - Math.trunc(SCREEN_WIDTH_TILES / 2), 0),
       y: Math.max(this.player.pos.y - Math.trunc(SCREEN_HEIGHT_TILES / 2), 0)
