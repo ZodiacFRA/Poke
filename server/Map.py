@@ -129,8 +129,8 @@ class MapWrapper(object):
                     print(f"[-] - Serializer error")
                 top_entity = self.map[y_idx][x_idx].t
                 bottom_entity = self.map[y_idx][x_idx].b
-                top_line.append("" if top_entity is None else top_entity.get_sprite_idx())
-                bottom_line.append("" if bottom_entity is None else bottom_entity.get_sprite_idx())
+                top_line.append(-1 if top_entity is None else top_entity.get_sprite_idx())
+                bottom_line.append(-1 if bottom_entity is None else bottom_entity.get_sprite_idx())
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized
