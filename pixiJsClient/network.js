@@ -42,7 +42,7 @@ const server = {
         app.player.pos.x = this.msgFromServer.player_pos.x;
         app.player.pos.y = this.msgFromServer.player_pos.y;
         app.player.direction = this.msgFromServer.player_direction;
-        app.buildMap();
+        app.displayMap();
         break;
     }
   },
