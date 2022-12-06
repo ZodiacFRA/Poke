@@ -1,14 +1,15 @@
-const imgPathArray = [
-  "sprites/ground.png",
-  "sprites/ground2.png",
-  "sprites/wall.png",
-  "sprites/player_up.png",
-  "sprites/player_right.png",
-  "sprites/player_down.png",
-  "sprites/player_left.png",
-  "sprites/pet.png",
-  // "sprites/scientist.png",
-];
+const imgSrc = {
+  name: [],
+  path: [
+    "sprites/ground.png",
+    "sprites/ground.png",
+    "sprites/wall.png",
+    "sprites/player_up.png",
+    "sprites/player_right.png",
+    "sprites/player_down.png",
+    "sprites/player_left.png",
+  ],
+};
 
 class image {
   constructor(path) {
@@ -20,7 +21,7 @@ class image {
 }
 
 const keyboard = {
-  listen: function() {
+  listen: function () {
     window.addEventListener("keydown", (e) => {
       server.msgToServer = {
         msg_type: "key_input",

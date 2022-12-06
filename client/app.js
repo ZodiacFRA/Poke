@@ -4,122 +4,89 @@ const PLAYER_ID = "UnDesSix";
 const TILE_SIZE = 32;
 const FPS = 30;
 
-
 const app = {
-  sprites: [],
-  // display
-  viewport: null,
-  ctx: null,
-  // data
+  app: null,
+  map: null,
+  textures: null,
   player: {
     pos: {
-      x: 0,
-      y: 0
+      x: -1,
+      y: -1,
     },
-  },
-  map: null,
-
-  init: function() {
-    this.loadSprites().then(() => server.listen());
-    this.setViewport();
-    this.ctx = this.viewport.getContext("2d");
+    direction: -1,
   },
 
-  loadSprites: async function() {
-    const promiseArray = [];
-    for (let imgPath of imgPathArray) {
-      promiseArray.push(
-        new Promise((resolve) => {
-          const sprite = new image(imgPath);
-          sprite.obj.onload = function() {
-            resolve();
-          };
-          this.sprites.push(sprite);
-        })
-      );
-    }
-    await Promise.all(promiseArray); // wait for all the sprites to be loaded
-    console.log(this.sprites.length, "sprites loaded");
-    return this.sprites;
+  init: function () {
+    this.app = new PIXI.Application({
+      width: SCREEN_WIDTH_TILES * TILE_SIZE,
+      height: SCREEN_HEIGHT_TILES * TILE_SIZE,
+      background: "#000000",
+    });
+    document.body.appendChild(this.app.view);
+
+    this.addSprites();
+    const texturesPromise = PIXI.Assets.load(imgSrc.name);
+    texturesPromise.then((textures) => {
+      this.textures = textures;
+      server.listen();
+    });
   },
 
-  setViewport: function() {
-    this.viewport = document.getElementById("viewport");
-    this.viewport.width = Math.trunc(SCREEN_WIDTH_TILES * TILE_SIZE);
-    this.viewport.height = Math.trunc(SCREEN_HEIGHT_TILES * TILE_SIZE);
-  },
-
-  updateMap: function(msgFromServer) {
-    switch (msgFromServer.type) {
-      case "add_entity":
-        this.map.top[msgFromServer.pos.y][msgFromServer.pos.x] = msgFromServer.entity
-        console.log("added entity", msgFromServer)
-        break;
-      case "delete_entity":
-        this.map.top[msgFromServer.pos.y][msgFromServer.pos.x] = ""
-        console.log("deleted entity", msgFromServer)
-        break;
-      case "move_entity":
-        var entity = this.map.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x]
-        this.map.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x] = ""
-        this.map.top[msgFromServer.to_pos.y][msgFromServer.to_pos.x] = entity
-        break;
+  addSprites: function () {
+    for (let i = 0; i < imgSrc.path.length; i++) {
+      imgSrc.name[i] = imgSrc.path[i].split("/")[1].split(".")[0];
+      PIXI.Assets.add(imgSrc.name[i], imgSrc.path[i]);
     }
   },
 
-  displayMap: function() {
-    this.ctx.clearRect(0, 0, this.viewport.width, this.viewport.height);
-    const topLeftTileIdx = {
-      x: Math.max(this.player.pos.x - Math.trunc(SCREEN_WIDTH_TILES / 2), 0),
-      y: Math.max(this.player.pos.y - Math.trunc(SCREEN_HEIGHT_TILES / 2), 0)
-    };
-    console.log("top left tile idxs:", topLeftTileIdx.y, topLeftTileIdx.x);
-    for (let y = 0; y < Math.min(SCREEN_HEIGHT_TILES, this.map.size_y); y++) {
-      for (let x = 0; x < Math.min(SCREEN_WIDTH_TILES, this.map.size_x); x++) {
-        // console.log('-------------', "y:", topLeftTileIdx.y + y, "x:", topLeftTileIdx.x + x);
-        var bottom_idx = this.map.bottom[topLeftTileIdx.y + y][topLeftTileIdx.x + x]
-        if (!isNaN(bottom_idx) && bottom_idx <= this.sprites.length) {
-          // console.log("bottom img path:", this.sprites[bottom_idx].obj.src);
-          this.ctx.drawImage(this.sprites[bottom_idx].obj, x * TILE_SIZE, y * TILE_SIZE);
+  displayMap: function () {
+    bottomContainer = new PIXI.Container();
+    topContainer = new PIXI.Container();
+    playerContainer = new PIXI.Container();
+    this.app.stage.removeChildren();
+    this.app.stage.addChild(bottomContainer);
+    this.app.stage.addChild(topContainer);
+    this.app.stage.addChild(playerContainer);
+
+    // CREATE AND SAVE PLAYER INTO CONTAINERS
+    // offsetPlayer is a paramater to offset the player position
+    // player.height - TILE_SIZE = 48 - 32 = 16;
+    const offsetPlayer = 16;
+    const playerSprite = new PIXI.Sprite(
+      this.textures[imgSrc.name[3 + this.player.direction]]
+    );
+    playerSprite.x = Math.trunc(SCREEN_WIDTH_TILES / 2) * TILE_SIZE;
+    playerSprite.y =
+      Math.trunc(SCREEN_HEIGHT_TILES / 2) * TILE_SIZE - offsetPlayer;
+    playerContainer.addChild(playerSprite);
+
+    // CREATE AND SAVE PLAYER INTO CONTAINERS
+    const topLeftTileIdx = { x: -1, y: -1 };
+    topLeftTileIdx.x = playerSprite.x - this.player.pos.x * TILE_SIZE;
+    topLeftTileIdx.y =
+      playerSprite.y + offsetPlayer - this.player.pos.y * TILE_SIZE;
+
+    for (let y = 0; y < this.map.size_y; y++) {
+      for (let x = 0; x < this.map.size_x; x++) {
+        if (this.map.bottom[y][x] >= 0) {
+          // idx matches with the images index. If map[y][x] is 0, then idx = 0 and
+          // the function will load imgSrc[0] as a texture.
+          const idx = this.map.bottom[y][x];
+          const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
+          sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
+          sprite.y = y * TILE_SIZE + topLeftTileIdx.y;
+          bottomContainer.addChild(sprite);
         }
-        var top_idx = this.map.top[topLeftTileIdx.y + y][topLeftTileIdx.x + x]
-        if (top_idx != "" && top_idx <= this.sprites.length) {
-          // Here request the animation frames to the frame manager
-          if (top_idx > 1) {
-            console.log("top img path:", this.sprites[top_idx].obj.src);
-            this.ctx.drawImage(this.sprites[top_idx].obj, 0, 0, 32, 48, x * TILE_SIZE, y * TILE_SIZE - 16, 32, 48);
-          } else {
-            this.ctx.drawImage(this.sprites[top_idx].obj, x * TILE_SIZE, y * TILE_SIZE);
-          }
+        if (this.map.top[y][x] >= 0) {
+          const idx = this.map.top[y][x];
+          const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
+          sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
+          sprite.y = y * TILE_SIZE + topLeftTileIdx.y;
+          topContainer.addChild(sprite);
         }
       }
     }
-  }
-
-  // displayPlayer: function(direction) {
-  //   const coord = {
-  //     x: Math.trunc(SCREEN_WIDTH_TILES / 2) * TILE_SIZE,
-  //     y: Math.trunc(SCREEN_HEIGHT_TILES / 2) * TILE_SIZE - 16,
-  //   };
-  //   const img = this.sprites[4].obj;
-  //   switch (direction) {
-  //     case "spawn":
-  //     case "down":
-  //       this.ctx.drawImage(img, 0, 0, 32, 48, coord.x, coord.y, 32, 48);
-  //       break;
-  //     case "up":
-  //       this.ctx.drawImage(img, 0, 144, 32, 48, coord.x, coord.y, 32, 48);
-  //       break;
-  //     case "left":
-  //       this.ctx.drawImage(img, 0, 48, 32, 48, coord.x, coord.y, 32, 48);
-  //       break;
-  //     case "right":
-  //       this.ctx.drawImage(img, 0, 96, 32, 48, coord.x, coord.y, 32, 48);
-  //       break;
-  //   }
-  //   // console.log("player displayed");
-  // },
+  },
 };
-
 
 app.init();

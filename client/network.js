@@ -1,23 +1,22 @@
-const URL = "localhost";
-const PORT = 50000;
-
-
 const server = {
+  url: "localhost",
+  port: 50000,
+  playerID: "UnDesSix",
   connection: null,
   msgFromServer: null,
   msgToServer: null,
 
-  connect: function() {
-    this.connection = new WebSocket("ws://" + URL + ":" + PORT);
+  connect: function () {
+    this.connection = new WebSocket("ws://" + this.url + ":" + this.port);
     this.msgToServer = {
       msg_type: "create_player",
-      player_name: PLAYER_ID,
+      player_name: this.playerID,
     };
     this.connection.onopen = () =>
       this.connection.send(JSON.stringify(this.msgToServer));
   },
 
-  listen: function() {
+  listen: function () {
     this.connect();
     keyboard.listen();
 
@@ -33,19 +32,16 @@ const server = {
     };
   },
 
-  parseMsg: function() {
+  parseMsg: function () {
     console.log(this.msgFromServer);
     switch (this.msgFromServer.msg_type) {
       case "init_map":
         app.map = this.msgFromServer.map;
-        app.displayMap();
         break;
       case "update":
-        app.player.pos.y = this.msgFromServer.player_pos.y
-        app.player.pos.x = this.msgFromServer.player_pos.x
-        for (let i = 0; i < this.msgFromServer.data.length; i++) {
-          app.updateMap(this.msgFromServer.data[i]);
-        }
+        app.player.pos.x = this.msgFromServer.player_pos.x;
+        app.player.pos.y = this.msgFromServer.player_pos.y;
+        app.player.direction = this.msgFromServer.player_direction;
         app.displayMap();
         break;
     }
