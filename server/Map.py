@@ -76,8 +76,16 @@ class MapWrapper(object):
         })
         return True
 
+
     ########################################
     ### Do not affect the map
+    def update_entity(self, pos, new_sprite_idx):
+        """ Only used to add a delta """
+        self.map_events.append({
+            "type": "update_entity",
+            "pos": pos,
+            "new_sprite_idx": new_sprite_idx
+        })
 
     def get(self, pos, top=True):
         if top:

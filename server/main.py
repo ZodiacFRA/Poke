@@ -98,23 +98,37 @@ class App(object):
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
         player = self.living_entities[engine_id]
+        old_dir = player.direction
         if msg["key"] == "ArrowUp":
-            new_pos = player.pos + self.pos_deltas[0]
-            player.direction = 0
+            if player.direction == 0:
+                new_pos = player.pos + self.pos_deltas[0]
+            else:
+                player.direction = 0
+                return
         elif msg["key"] == "ArrowRight":
-            new_pos = player.pos + self.pos_deltas[1]
-            player.direction = 1
+            if player.direction == 1:
+                new_pos = player.pos + self.pos_deltas[1]
+            else:
+                player.direction = 1
+                return
         elif msg["key"] == "ArrowDown":
-            new_pos = player.pos + self.pos_deltas[2]
-            player.direction = 2
+            if player.direction == 2:
+                new_pos = player.pos + self.pos_deltas[2]
+            else:
+                player.direction = 2
+                return
         elif msg["key"] == "ArrowLeft":
-            new_pos = player.pos + self.pos_deltas[3]
-            player.direction = 3
+            if player.direction == 3:
+                new_pos = player.pos + self.pos_deltas[3]
+            else:
+                player.direction = 3
+                return
         else:  # Not a movement
             return
-        # No need to check for collisions
-        # we just ignore if the move isn't possible
-        move = self.map_wrapper.move_entity(player.pos, new_pos)
+        if player.direction != old_dir:
+            self.map_wrapper.update_entity(player_pos, player.get_sprite_idx())
+        if player.pos != new_pos:
+            self.map_wrapper.move_entity(player.pos, new_pos)
 
     ########################################3
     ### Networking
