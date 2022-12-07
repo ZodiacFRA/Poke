@@ -6,7 +6,7 @@ project( ImageToMap )
 find_package( OpenCV REQUIRED )
 
 add_executable( ImageToMap 
-    Main_copy.cpp
+    Main.cpp
 )
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries( ImageToMap ${OpenCV_LIBS} )

@@ -1,23 +1,22 @@
-const URL = "localhost";
-const PORT = 50000;
-
-
 const server = {
+  url: "localhost",
+  port: 50000,
+  playerID: "UnDesSix",
   connection: null,
   msgFromServer: null,
   msgToServer: null,
 
-  connect: function() {
-    this.connection = new WebSocket("ws://" + URL + ":" + PORT);
+  connect: function () {
+    this.connection = new WebSocket("ws://" + this.url + ":" + this.port);
     this.msgToServer = {
       msg_type: "create_player",
-      player_name: PLAYER_ID,
+      player_name: this.playerID,
     };
     this.connection.onopen = () =>
       this.connection.send(JSON.stringify(this.msgToServer));
   },
 
-  listen: function() {
+  listen: function () {
     this.connect();
     keyboard.listen();
 
@@ -33,20 +32,42 @@ const server = {
     };
   },
 
-  parseMsg: function() {
+  parseMsg: function () {
     console.log(this.msgFromServer);
     switch (this.msgFromServer.msg_type) {
       case "init_map":
         app.map = this.msgFromServer.map;
-        app.displayMap();
         break;
       case "update":
-        app.player.pos.y = this.msgFromServer.player_pos.y
-        app.player.pos.x = this.msgFromServer.player_pos.x
+        app.player.pos.x = this.msgFromServer.player_pos.x;
+        app.player.pos.y = this.msgFromServer.player_pos.y;
         for (let i = 0; i < this.msgFromServer.data.length; i++) {
-          app.updateMap(this.msgFromServer.data[i]);
+          this.updateMap(this.msgFromServer.data[i]);
         }
         app.displayMap();
+        break;
+    }
+  },
+
+  updateMap: function (msgFromServer) {
+    console.log(msgFromServer.type);
+    switch (msgFromServer.type) {
+      case "add_entity":
+        app.map.top[msgFromServer.pos.y][msgFromServer.pos.x] =
+          msgFromServer.entity;
+        break;
+      case "delete_entity":
+        app.map.top[msgFromServer.pos.y][msgFromServer.pos.x] = -1;
+        break;
+      case "move_entity":
+        var entity =
+          app.map.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
+        app.map.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x] = -1;
+        app.map.top[msgFromServer.to_pos.y][msgFromServer.to_pos.x] = entity;
+        break;
+      case "update_entity":
+        app.map.top[msgFromServer.pos.y][msgFromServer.pos.x] =
+          msgFromServer.entity;
         break;
     }
   },

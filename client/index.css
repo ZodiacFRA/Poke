@@ -1,6 +1,6 @@
 html,
 body,
-#viewport {
+canvas {
   padding: 0;
   margin: auto;
   display: block;
@@ -9,7 +9,7 @@ body,
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: rgb(51, 51, 51);
+  background-color: rgb(37, 34, 34);
   width: 100vw;
 }
 html {

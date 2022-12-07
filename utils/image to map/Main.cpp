@@ -4,6 +4,7 @@
 #include <cassert>
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <fstream>
 #include <string>
 
 using namespace cv;
@@ -15,8 +16,8 @@ long getTime(){
 
 
 
-std::vector<char>               decoded_map;
-std::vector<int>                id_map;
+// std::vector<std::vector<std::vector<char>>>  decoded_map;
+std::map<int,std::map<int,int>>   id_map;
 std::vector<std::vector<int>>   ref_table;
 int                             sprite_size = 16;
 
@@ -24,19 +25,13 @@ int                             map_width;
 Mat image;
 
 
-bool compare_img(char* img1, char* img2) {
-    // std::cout << "heinnnnnnnn" << (void*)img1 << " " << (void*)img2 << std::endl;
-    for (int y = 0; y < sprite_size; ++y) {
-        for (int x = 0; x < sprite_size; ++x) {
-            if (img1[x + 0] - img2[x + 0] > 10)
+bool compare_img(int x, int y, int i, int j) {
+    for (int a = 0; a < sprite_size; ++a) {
+        for (int b = 0; b < sprite_size; ++b) {
+            if (image.at<Vec3b>(x + a, y + b) != image.at<Vec3b>(i + a, j + b)) {
                 return false;
-            if (img1[x + 1] - img2[x + 1] > 10)
-                return false;
-            if (img1[x + 2] - img2[x + 2] > 10)
-                return false;
+            }
         }
-        img1 += map_width;
-        img2 += map_width;
     }
     return true;
 }
@@ -61,21 +56,17 @@ void draw_image(int x , int y, int num, int xa , int ya) {
     destroyWindow(windowName); //destroy the created window
 }
 
-void main_work(int x, int y) {
-    char *ptr_ref_tested = &decoded_map.data()[x*3 + y * map_width];
-    std::cout << "start " << x << " " << y << std::endl;
-    draw_image(x,y,0,0,0);
-    for (int ref_id = 0; ref_id < ref_table.size(); ++ref_id) {
-        char *ptr_ref = &decoded_map.data()[ref_table[ref_id][0] * 3 + ref_table[ref_id][1] * map_width];
-        draw_image(x,y,ref_id, ref_table[ref_id][0],ref_table[ref_id][1]);
-        auto ret = compare_img(ptr_ref_tested, ptr_ref);
-        if (ret){
-            id_map[(x/sprite_size) + (y/sprite_size)*(map_width/3)] = ref_id;
-            return;
+bool compare_tile_to_refs(int x, int y) {
+    int a = 0;
+    for (auto ref : ref_table) {
+        if (compare_img(x, y, ref[0], ref[1])) {
+            id_map[y/sprite_size][x/sprite_size] = a;
+            return true;
         }
+        ++a;
     }
-    id_map[(x/sprite_size) + (y/sprite_size)*(map_width/3/16)] = ref_table.size();
-    ref_table.push_back({x,y});
+    id_map[y/sprite_size][x/sprite_size] = ref_table.size();
+    return false;
 }
 
 int main(int argc, char** argv)
@@ -84,49 +75,37 @@ int main(int argc, char** argv)
     image = imread("/home/seub/Downloads/mathieugrosfdp.png");
 
     auto size = image.size();
-    map_width = size.width * 3;
+    std::cout << size.height << " " << size.width << std::endl;
 
-    decoded_map.reserve(size.height * size.width * 3);
-    id_map.reserve((size.width / sprite_size) * (size.height / sprite_size));
-    for (int y = 160; y < size.width; ++y) {
-        for (int x = 0; x < size.height; ++x) {
-            auto const &tmp = image.at<Vec3b>(x, y);
-            decoded_map.emplace_back(tmp[0]);
-            decoded_map.emplace_back(tmp[1]);
-            decoded_map.emplace_back(tmp[2]);
-            id_map.emplace_back(0);
-        }
-    }
-
-    main_work(0, 0);
-    main_work(0, 0);
-    assert(compare_img(decoded_map.data()+16*sprite_size,decoded_map.data()+16*sprite_size) == true);
-    assert(compare_img(decoded_map.data()+16*sprite_size,decoded_map.data()+69*sprite_size) == false);
-    assert(ref_table.size() == 1);
-
-    auto before = getTime();
-    int tf = 0;
-    for (int y = 160; y < size.height; y += sprite_size) {
-
-        for (int x = 0; x < size.width; x += sprite_size) {
-            ++tf;
-            main_work(x, y);
-            std::cout << "ref size: " << ref_table.size() << "/" << tf << std::endl;
-            if (ref_table.size() == 10) {
-                for(auto elem : ref_table)
-                draw_image(elem[0], elem[y], 0,0,0);
+    for (int y = 0; y < size.height - sprite_size/2; y += sprite_size) {
+        for (int x = 0; x < size.width - sprite_size/2; x += sprite_size) {
+            bool exist = compare_tile_to_refs(x,y);
+            if (!exist) {
+                ref_table.push_back({x,y});
+                std::cout << "add ref: " << x << ":" << y << std::endl;
             }
         }
-        auto after_y_iter = getTime();
-        if (y)
-        std::cout << "remaining ms: " << ((after_y_iter - before)/ y) * (size.height-y) << std::endl;
     }
 
-    for (auto elem : ref_table) {
-        // std::cout << "ref " << elem[0] << ":" << elem[1] << std::endl;
-    }
+    ofstream myfile;
+    myfile.open ("map_out.json");
+    myfile << "{\"map\": [\n";
+    for (int y = 0; y < id_map.size() - 1; ++y) {
+        myfile << "[";
+        for (int x = 0; x < id_map.size(); ++x) {
+            myfile << std::right << std::setw(5) << id_map[x][y] << ",";
+        }
+        myfile << std::right << std::setw(5) << id_map[id_map.size()-1][y] << "],\n";
 
-    std::cout << tf << std::endl;
+    }
+    myfile << "],\n\"ref\":{";
+    for (int x = 0; x < ref_table.size() - 1; ++x) {
+            myfile << "\"" << x << "\": [" << ref_table[x][0] << ", " << ref_table[x][1] << "],\n";
+    }
+    myfile << "\"" << ref_table.size() - 1 << "\": [" << ref_table[ref_table.size() - 1][0] << ", " << ref_table[ref_table.size() - 1][1] << "],\n";
+    myfile << "}}";
+    myfile.close();
+
     std::cout << "final size: " << ref_table.size() << std::endl;
 
 

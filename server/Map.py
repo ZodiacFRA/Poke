@@ -76,8 +76,16 @@ class MapWrapper(object):
         })
         return True
 
+
     ########################################
     ### Do not affect the map
+    def update_entity(self, pos, new_sprite_idx):
+        """ Only used to add a delta """
+        self.map_events.append({
+            "type": "update_entity",
+            "pos": pos.get_json_repr(),
+            "entity": new_sprite_idx
+        })
 
     def get(self, pos, top=True):
         if top:
@@ -85,19 +93,22 @@ class MapWrapper(object):
         else:
             return self.map[pos.y][pos.x].b
 
-    def is_colliding_pos(self, pos):
+    def is_colliding_pos(self, pos, collide_treshold=99999):
         # OOB -> colliding
         if pos.x < 0 or pos.x >= self.x_size or pos.y < 0 or pos.y >= self.y_size:
             return True
-        # No Floor -> colliding
-        if self.map[pos.y][pos.x].b is None:
+        try:
+            # No Floor -> colliding
+            if self.map[pos.y][pos.x].b is None:
+                return True
+            # Floor only -> Not colliding
+            if self.map[pos.y][pos.x].t is None:
+                return False
+            # Floor and Non-colliding entity -> Not colliding
+            if self.map[pos.y][pos.x].t.collider > collide_treshold:
+                return False
+        except IndexError:  # For non square maps, index won't exist, return True
             return True
-        # Floor only -> Not colliding
-        if self.map[pos.y][pos.x].t is None:
-            return False
-        # Floor and Non-colliding entity -> Not colliding
-        if not self.map[pos.y][pos.x].t.collider:
-            return False
         # Floor and Colliding entity -> colliding
         return True
 
@@ -121,13 +132,13 @@ class MapWrapper(object):
         for y_idx in range(self.y_size):
             top_line = []
             bottom_line = []
-            for x_idx in range(self.x_size):
+            for x_idx in range(len(self.map[y_idx])):
                 if self.map[y_idx][x_idx] is None:
                     print(f"[-] - Serializer error")
                 top_entity = self.map[y_idx][x_idx].t
                 bottom_entity = self.map[y_idx][x_idx].b
-                top_line.append("" if top_entity is None else top_entity.get_sprite_idx())
-                bottom_line.append("" if bottom_entity is None else bottom_entity.get_sprite_idx())
+                top_line.append(-1 if top_entity is None else top_entity.get_sprite_idx())
+                bottom_line.append(-1 if bottom_entity is None else bottom_entity.get_sprite_idx())
             serialized["top"].append(top_line)
             serialized["bottom"].append(bottom_line)
         return serialized

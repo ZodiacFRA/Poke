@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/map")
+        self.map_wrapper = MapWrapper("./maps/medium")
 
         ### Networking
         self.incoming_messages = []
@@ -81,7 +81,7 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
-        # self.add_pet(player)  # (Matthieu: I hate animals)
+        self.add_pet(player)
 
     def add_pet(self, player, position=None):
         pet_position = position if position else self.map_wrapper.get_available_position()
@@ -98,23 +98,34 @@ class App(object):
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
         player = self.living_entities[engine_id]
+        old_dir = player.direction
+        new_pos = None
         if msg["key"] == "ArrowUp":
-            new_pos = player.pos + self.pos_deltas[0]
-            player.direction = 0
+            if player.direction == 0:
+                new_pos = player.pos + self.pos_deltas[0]
+            else:
+                player.direction = 0
         elif msg["key"] == "ArrowRight":
-            new_pos = player.pos + self.pos_deltas[1]
-            player.direction = 1
+            if player.direction == 1:
+                new_pos = player.pos + self.pos_deltas[1]
+            else:
+                player.direction = 1
         elif msg["key"] == "ArrowDown":
-            new_pos = player.pos + self.pos_deltas[2]
-            player.direction = 2
+            if player.direction == 2:
+                new_pos = player.pos + self.pos_deltas[2]
+            else:
+                player.direction = 2
         elif msg["key"] == "ArrowLeft":
-            new_pos = player.pos + self.pos_deltas[3]
-            player.direction = 3
-        else:  # Not a movement
+            if player.direction == 3:
+                new_pos = player.pos + self.pos_deltas[3]
+            else:
+                player.direction = 3
+        else:  # Not a movement nor a dir change
             return
-        # No need to check for collisions
-        # we just ignore if the move isn't possible
-        self.map_wrapper.move_entity(player.pos, new_pos)
+        if player.direction != old_dir:
+            self.map_wrapper.update_entity(player.pos, player.get_sprite_idx())
+        if new_pos and player.pos != new_pos:
+            self.map_wrapper.move_entity(player.pos, new_pos)
 
     ########################################3
     ### Networking
@@ -168,7 +179,7 @@ class App(object):
         self.server.send_message_to_all(json.dumps(message))
 
     def on_client_leave(self, client, server):
-        print("left")
+        print("Client left")
         engine_id = self.id_manager.get_engine_id(client["id"])
         # Remove all messages from this player in the message queue
         tmp = []
@@ -178,6 +189,8 @@ class App(object):
         self.incoming_messages = tmp
 
         player = self.living_entities.pop(engine_id)
+        for pet in player.pets:
+            self.living_entities.pop(pet.id)
         self.map_wrapper.delete_entity(player.pos)
 
     def on_msg_received(self, client, server, message):

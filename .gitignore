@@ -4,3 +4,4 @@ venv
 *.xcf
 CMakeFiles
 build
+BUs/

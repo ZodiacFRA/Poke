@@ -23,6 +23,9 @@ class Position(object):
     def get_json_repr(self):
         return {"x": self.x, "y": self.y}
 
+    def get_tuple(self):
+        return self.y, self.x
+
     def get_direction(self, target):
         """ Return the direction to the target
         returns None if target isn't in one of the 4 cardinal positions
@@ -38,6 +41,19 @@ class Position(object):
             if target.x == self.x + 1:
                 return 1
         return None
+
+    def get_distance_from(self, other):
+        return abs(self.y - other.y) + abs(self.x - other.x)
+
+    def get_closest(self, positions):
+        min_distance = 999999
+        min_pos = None
+        for pos in positions:
+            distance = self.get_distance_from(pos)
+            if distance < min_distance:
+                min_distance = distance
+                min_pos = pos
+        return min_pos
 
 
 class Tile(object):
