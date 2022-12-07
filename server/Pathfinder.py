@@ -14,12 +14,13 @@ class Pathfinder(object):
         self.algo = Dijkstra(map_wrapper)
         self.queries = {}
 
-    def get_next_move(self, entity, to_pos, requested_distance_from_target):
-        path = self.algo.get_shortest_path(entity.pos, to_pos)
+    def get_next_move(self, entity, target_pos):
+        path = self.algo.get_shortest_path(entity.pos, target_pos)
         if not path:
-            print(f"""[ ] - Pathfinding system - Could not find path from {entity.pos} to {to_pos}""")
+            print(f"""[ ] - Pathfinding system - Could not find path from {entity.pos} to {target_pos}""")
             return None
-        path = path[:len(path) - requested_distance_from_target - 1]
         if len(path):
             return path.pop(0)
-            
+
+    def get_tiles_at_distance_from(self, target_pos, requested_distance):
+        return self.algo.get_tiles_at_distance_from(target_pos, requested_distance)

@@ -22,9 +22,7 @@ class Dijkstra(object):
         self.deltas = (Position(-1, 0), Position(0, 1), Position(1, 0), Position(0, -1))
         self.map_wrapper = map_wrapper
 
-    def get_shortest_path(self, from_pos, target_pos):
-        """ A complete re evaluation of the graph is done each time for now, as
-        colliding entities can change positions """
+    def init_request(self, from_pos, target_pos):
         self.root_node = Node(from_pos, 0)
         self.target_pos = target_pos
 
@@ -33,17 +31,35 @@ class Dijkstra(object):
         # Set the root node as done, we already know its distance (0)
         self.done_nodes[self.root_node.__repr__()] = self.root_node
         self.explore_neighbors(self.root_node)
+
+    def get_shortest_path(self, from_pos, target_pos):
+        """ A complete re evaluation of the graph is done each time for now, as
+        colliding entities can change positions """
+        self.init_request(from_pos, target_pos)
         return self.compute()
 
-    def explore_neighbors(self, current_node, distance=0):
+    def get_tiles_at_distance_from(self, from_pos, requested_distance):
+        self.scan_zone(from_pos, requested_distance)
+        return [n.pos for _, n in self.done_nodes.items() if n.distance == requested_distance]
+
+    def scan_zone(self, center_pos, requested_distance):
+        self.init_request(center_pos, Position(-1, -1))
+        while len(self.to_do_nodes) > 0:
+            node_name, node = self.to_do_nodes.popitem(False)
+            if node.pos.get_distance_from(center_pos) > requested_distance:
+                continue
+            self.explore_neighbors(node, node.distance)
+            self.done_nodes[node_name] = node
+
+    def explore_neighbors_wrapper(self, current_node, distance=0):
         if distance > self.map_wrapper.x_size * self.map_wrapper.y_size:
             return 2
         if current_node.pos == self.target_pos:
             return 1
-        self.explore_neighbors_2(current_node, distance)
+        self.explore_neighbors(current_node, distance)
         return 0
 
-    def explore_neighbors_2(self, current_node, distance=0):
+    def explore_neighbors(self, current_node, distance=0):
         for delta in self.deltas:
             tmp_pos = current_node.pos + delta
             # If is a valid position (is a node)
@@ -72,12 +88,12 @@ class Dijkstra(object):
     def compute(self):
         while len(self.to_do_nodes) > 0:
             node = self.to_do_nodes.popitem(False)
-            flag = self.explore_neighbors(node[1], node[1].distance)
+            flag = self.explore_neighbors_wrapper(node[1], node[1].distance)
             self.done_nodes[node[0]] = node[1]
             if flag == 1:
                 res = []
                 min_neighbor = node[1]
-                self.explore_neighbors_2(min_neighbor, min_neighbor.distance)
+                self.explore_neighbors(min_neighbor, min_neighbor.distance)
                 # Backtracking
                 while min_neighbor.distance != 1:
                     for neighbor in min_neighbor.neighbors:

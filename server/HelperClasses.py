@@ -42,6 +42,19 @@ class Position(object):
                 return 1
         return None
 
+    def get_distance_from(self, other):
+        return abs(self.y - other.y) + abs(self.x - other.x)
+
+    def get_closest(self, positions):
+        min_distance = 999999
+        min_pos = None
+        for pos in positions:
+            distance = self.get_distance_from(pos)
+            if distance < min_distance:
+                min_distance = distance
+                min_pos = pos
+        return min_pos
+
 
 class Tile(object):
     def __init__(self, bottomObject=None, topObject=None):

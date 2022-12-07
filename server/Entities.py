@@ -64,7 +64,14 @@ class Pet(LivingEntity):
         self.owner = owner
         self.requested_distance_from_owner = 3
 
+
     def do_turn(self, map_wrapper, living_entities):
-        next_move = map_wrapper.pathfinder.get_next_move(self, self.owner.pos, self.requested_distance_from_owner)
+        if self.pos.get_distance_from(self.owner.pos) == self.requested_distance_from_owner:
+            return
+        tiles = map_wrapper.pathfinder.get_tiles_at_distance_from(
+            self.owner.pos, self.requested_distance_from_owner
+        )
+        target_pos = self.pos.get_closest(tiles)
+        next_move = map_wrapper.pathfinder.get_next_move(self, target_pos)
         if next_move is not None:
             done_move = map_wrapper.move_entity(self.pos, next_move)
