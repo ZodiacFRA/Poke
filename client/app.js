@@ -42,29 +42,28 @@ const app = {
   displayMap: function () {
     bottomContainer = new PIXI.Container();
     topContainer = new PIXI.Container();
-    playerContainer = new PIXI.Container();
+    // playerContainer = new PIXI.Container();
     this.app.stage.removeChildren();
     this.app.stage.addChild(bottomContainer);
     this.app.stage.addChild(topContainer);
-    this.app.stage.addChild(playerContainer);
+    // this.app.stage.addChild(playerContainer);
 
-    // CREATE AND SAVE PLAYER INTO CONTAINERS
-    // offsetPlayer is a paramater to offset the player position
-    // player.height - TILE_SIZE = 48 - 32 = 16;
-    const offsetPlayer = 16;
-    const playerSprite = new PIXI.Sprite(
-      this.textures[imgSrc.name[3 + this.player.direction]]
-    );
+    // // CREATE AND SAVE PLAYER INTO CONTAINERS
+    // // offsetPlayer is a paramater to offset the player position
+    // // player.height - TILE_SIZE = 48 - 32 = 16;
+    // const spriteVal = this.map.top[this.player.pos.y][this.player.pos.x];
+    // console.log(spriteVal);
+    // const playerSprite = new PIXI.Sprite(this.textures[imgSrc.name[spriteVal]]);
+    console.log(this.map.top);
+    const playerSprite = { x: -1, y: -1 };
     playerSprite.x = Math.trunc(SCREEN_WIDTH_TILES / 2) * TILE_SIZE;
-    playerSprite.y =
-      Math.trunc(SCREEN_HEIGHT_TILES / 2) * TILE_SIZE - offsetPlayer;
-    playerContainer.addChild(playerSprite);
+    playerSprite.y = Math.trunc(SCREEN_HEIGHT_TILES / 2) * TILE_SIZE;
+    // playerContainer.addChild(playerSprite);
 
     // CREATE AND SAVE PLAYER INTO CONTAINERS
     const topLeftTileIdx = { x: -1, y: -1 };
     topLeftTileIdx.x = playerSprite.x - this.player.pos.x * TILE_SIZE;
-    topLeftTileIdx.y =
-      playerSprite.y + offsetPlayer - this.player.pos.y * TILE_SIZE;
+    topLeftTileIdx.y = playerSprite.y - this.player.pos.y * TILE_SIZE;
 
     for (let y = 0; y < this.map.size_y; y++) {
       for (let x = 0; x < this.map.size_x; x++) {
@@ -78,7 +77,11 @@ const app = {
           bottomContainer.addChild(sprite);
         }
         if (this.map.top[y][x] >= 0) {
+          // const offsetPlayer = 0;
           const idx = this.map.top[y][x];
+          // if (idx > 2) {
+          //   offsetPlayer = 16;
+          // }
           const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
           sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
           sprite.y = y * TILE_SIZE + topLeftTileIdx.y;

@@ -41,8 +41,33 @@ const server = {
       case "update":
         app.player.pos.x = this.msgFromServer.player_pos.x;
         app.player.pos.y = this.msgFromServer.player_pos.y;
-        app.player.direction = this.msgFromServer.player_direction;
+        for (let i = 0; i < this.msgFromServer.data.length; i++) {
+          this.updateMap(this.msgFromServer.data[i]);
+        }
         app.displayMap();
+        break;
+    }
+  },
+
+  updateMap: function (msgFromServer) {
+    console.log(msgFromServer.type);
+    switch (msgFromServer.type) {
+      case "add_entity":
+        app.map.top[msgFromServer.pos.y][msgFromServer.pos.x] =
+          msgFromServer.entity;
+        break;
+      case "delete_entity":
+        app.map.top[msgFromServer.pos.y][msgFromServer.pos.x] = -1;
+        break;
+      case "move_entity":
+        var entity =
+          app.map.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x];
+        app.map.top[msgFromServer.from_pos.y][msgFromServer.from_pos.x] = -1;
+        app.map.top[msgFromServer.to_pos.y][msgFromServer.to_pos.x] = entity;
+        break;
+      case "update_entity":
+        app.map.top[msgFromServer.pos.y][msgFromServer.pos.x] =
+          msgFromServer.entity;
         break;
     }
   },
