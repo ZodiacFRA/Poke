@@ -43,6 +43,9 @@ class LivingEntity(Entity):
         self.direction = 0
         # 0: Top, 1: Right, 2: Bottom, 3: Left
 
+    def get_sprite_idx(self):
+        return self.sprite_idx + self.direction
+
     def do_turn(self, map_wrapper, living_entities):
         pass
 
@@ -54,16 +57,12 @@ class Player(LivingEntity):
         self.inventory = {}
         self.pets = []
 
-    def get_sprite_idx(self):
-        return self.sprite_idx + self.direction
-
 class Pet(LivingEntity):
     def __init__(self, id, pos, owner, sprite_idx=7, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
         self.collider = True
         self.owner = owner
         self.requested_distance_from_owner = 3
-
 
     def do_turn(self, map_wrapper, living_entities):
         if self.pos.get_distance_from(self.owner.pos) == self.requested_distance_from_owner:

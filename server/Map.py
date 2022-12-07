@@ -83,7 +83,7 @@ class MapWrapper(object):
         """ Only used to add a delta """
         self.map_events.append({
             "type": "update_entity",
-            "pos": pos,
+            "pos": pos.get_json_repr(),
             "entity": new_sprite_idx
         })
 

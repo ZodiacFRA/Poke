@@ -99,35 +99,32 @@ class App(object):
         engine_id = self.id_manager.get_engine_id(client["id"])
         player = self.living_entities[engine_id]
         old_dir = player.direction
+        new_pos = None
         if msg["key"] == "ArrowUp":
             if player.direction == 0:
                 new_pos = player.pos + self.pos_deltas[0]
             else:
                 player.direction = 0
-                return
         elif msg["key"] == "ArrowRight":
             if player.direction == 1:
                 new_pos = player.pos + self.pos_deltas[1]
             else:
                 player.direction = 1
-                return
         elif msg["key"] == "ArrowDown":
             if player.direction == 2:
                 new_pos = player.pos + self.pos_deltas[2]
             else:
                 player.direction = 2
-                return
         elif msg["key"] == "ArrowLeft":
             if player.direction == 3:
                 new_pos = player.pos + self.pos_deltas[3]
             else:
                 player.direction = 3
-                return
-        else:  # Not a movement
+        else:  # Not a movement nor a dir change
             return
         if player.direction != old_dir:
-            self.map_wrapper.update_entity(player_pos, player.get_sprite_idx())
-        if player.pos != new_pos:
+            self.map_wrapper.update_entity(player.pos, player.get_sprite_idx())
+        if new_pos and player.pos != new_pos:
             self.map_wrapper.move_entity(player.pos, new_pos)
 
     ########################################3
@@ -182,7 +179,7 @@ class App(object):
         self.server.send_message_to_all(json.dumps(message))
 
     def on_client_leave(self, client, server):
-        print("left")
+        print("Client left")
         engine_id = self.id_manager.get_engine_id(client["id"])
         # Remove all messages from this player in the message queue
         tmp = []
