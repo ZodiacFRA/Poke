@@ -23,6 +23,9 @@ class Position(object):
     def get_json_repr(self):
         return {"x": self.x, "y": self.y}
 
+    def get_tuple(self):
+        return self.y, self.x
+
     def get_direction(self, target):
         """ Return the direction to the target
         returns None if target isn't in one of the 4 cardinal positions

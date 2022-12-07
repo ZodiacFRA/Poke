@@ -62,27 +62,9 @@ class Pet(LivingEntity):
         super().__init__(id, pos, speed, sprite_idx)
         self.collider = True
         self.owner = owner
-        self.owner_previous_positions = collections.deque(maxlen=3)
-        self.distance_from_owner = 2
-        self.moves_nbr = 0
+        self.requested_distance_from_owner = 3
 
     def do_turn(self, map_wrapper, living_entities):
-        old_pos = self.pos
-        if not self.owner_previous_positions:
-            self.owner_previous_positions.append(self.owner.pos)
-        target_pos = self.owner_previous_positions[0]
-
-        # Only add the new owner pos if it has moved
-        if self.owner.pos != self.owner_previous_positions[-1]:
-            self.owner_previous_positions.append(self.owner.pos)
-        if self.pos != target_pos:
-            next_move = map_wrapper.pathfinder.get_next_move(self, target_pos, True, 0)
-            if next_move is not None:
-                done_move = map_wrapper.move_entity(self.pos, next_move)
-                if done_move:
-                    self.moves_nbr += 1
-                    direction = old_pos.get_direction(next_move)
-                    if direction is None:
-                        # raise ImpossibleMoveError(old_pos, next_move)
-                        print("[-] - TODO: Fix Pet impossible move")
-                    self.direction = direction
+        next_move = map_wrapper.pathfinder.get_next_move(self, self.owner.pos, self.requested_distance_from_owner)
+        if next_move is not None:
+            done_move = map_wrapper.move_entity(self.pos, next_move)
