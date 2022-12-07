@@ -8,7 +8,10 @@ const imgSrc = {
     "sprites/player_right.png",
     "sprites/player_down.png",
     "sprites/player_left.png",
-    "sprites/pet.png",
+    "sprites/pet_up.png",
+    "sprites/pet_right.png",
+    "sprites/pet_down.png",
+    "sprites/pet_left.png",
   ],
 };
 
