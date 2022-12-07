@@ -2,7 +2,7 @@ const imgSrc = {
   name: [],
   path: [
     "sprites/ground.png",
-    "sprites/ground.png",
+    "sprites/ground2.png",
     "sprites/wall.png",
     "sprites/player_up.png",
     "sprites/player_right.png",
