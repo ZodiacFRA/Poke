@@ -77,14 +77,14 @@ const app = {
           bottomContainer.addChild(sprite);
         }
         if (this.map.top[y][x] >= 0) {
-          // const offsetPlayer = 0;
+          let offsetPlayer = 0;
           const idx = this.map.top[y][x];
-          // if (idx > 2) {
-          //   offsetPlayer = 16;
-          // }
+          if (idx > 2 && idx < 7) {
+            offsetPlayer = 16;
+          }
           const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
           sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
-          sprite.y = y * TILE_SIZE + topLeftTileIdx.y;
+          sprite.y = y * TILE_SIZE + topLeftTileIdx.y - offsetPlayer;
           topContainer.addChild(sprite);
         }
       }
