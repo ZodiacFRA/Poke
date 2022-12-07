@@ -56,7 +56,7 @@ class Dijkstra(object):
             node_name, node = self.to_do_nodes.popitem(False)
             if node.pos.get_distance_from(center_pos) > requested_distance:
                 continue
-            self.explore_neighbors(node, node.distance)
+            self.explore_neighbors(node, node.distance, 1)
             self.done_nodes[node_name] = node
 
     def explore_neighbors_wrapper(self, current_node, distance=0):
@@ -67,11 +67,11 @@ class Dijkstra(object):
         self.explore_neighbors(current_node, distance)
         return 0
 
-    def explore_neighbors(self, current_node, distance=0):
+    def explore_neighbors(self, current_node, distance=0, collide_treshold=9999):
         for delta in self.deltas:
             tmp_pos = current_node.pos + delta
             # If is a valid position (is a node)
-            if not self.map_wrapper.is_colliding_pos(tmp_pos):
+            if not self.map_wrapper.is_colliding_pos(tmp_pos, collide_treshold):
                 tmpName = tmp_pos.__repr__()
                 # If position has never been visited, create the node object
                 if tmpName not in self.to_do_nodes and tmpName not in self.done_nodes:

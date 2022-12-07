@@ -93,7 +93,7 @@ class MapWrapper(object):
         else:
             return self.map[pos.y][pos.x].b
 
-    def is_colliding_pos(self, pos):
+    def is_colliding_pos(self, pos, collide_treshold=99999):
         # OOB -> colliding
         if pos.x < 0 or pos.x >= self.x_size or pos.y < 0 or pos.y >= self.y_size:
             return True
@@ -105,7 +105,7 @@ class MapWrapper(object):
             if self.map[pos.y][pos.x].t is None:
                 return False
             # Floor and Non-colliding entity -> Not colliding
-            if not self.map[pos.y][pos.x].t.collider:
+            if self.map[pos.y][pos.x].t.collider > collide_treshold:
                 return False
         except IndexError:  # For non square maps, index won't exist, return True
             return True

@@ -8,7 +8,7 @@ from ErrorClasses import ImpossibleMoveError
 class Entity(object):
     def __init__(self, pos):
         self.pos = pos
-        self.collider = False
+        self.collider = 0
         self.sprite_idx = None
 
     def __repr__(self):
@@ -28,7 +28,7 @@ class Ground(Entity):
 class Wall(Entity):
     def __init__(self, pos, sprite_idx=2):
         super().__init__(pos)
-        self.collider = True
+        self.collider = 1
         self.sprite_idx = sprite_idx
 
 ##############################################
@@ -52,7 +52,7 @@ class LivingEntity(Entity):
 class Player(LivingEntity):
     def __init__(self, id, pos, name, sprite_idx=3, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
-        self.collider = True
+        self.collider = 2
         self.name = name
         self.inventory = {}
         self.pets = []
@@ -60,7 +60,7 @@ class Player(LivingEntity):
 class Pet(LivingEntity):
     def __init__(self, id, pos, owner, sprite_idx=7, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
-        self.collider = True
+        self.collider = 2
         self.owner = owner
         self.requested_distance_from_owner = 3
 
