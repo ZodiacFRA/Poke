@@ -40,7 +40,15 @@ class Dijkstra(object):
 
     def get_tiles_at_distance_from(self, from_pos, requested_distance):
         self.scan_zone(from_pos, requested_distance)
-        return [n.pos for _, n in self.done_nodes.items() if n.distance == requested_distance]
+        tmp = []
+        while not tmp:
+            for _, n in self.done_nodes.items():
+                if n.distance == requested_distance:
+                    tmp.append(n.pos)
+            requested_distance -= 1
+            if requested_distance == 0:
+                break
+        return tmp
 
     def scan_zone(self, center_pos, requested_distance):
         self.init_request(center_pos, Position(-1, -1))

@@ -70,7 +70,9 @@ class Pet(LivingEntity):
         tiles = map_wrapper.pathfinder.get_tiles_at_distance_from(
             self.owner.pos, self.requested_distance_from_owner
         )
+        next_move = None
         target_pos = self.pos.get_closest(tiles)
-        next_move = map_wrapper.pathfinder.get_next_move(self, target_pos)
+        if target_pos:
+            next_move = map_wrapper.pathfinder.get_next_move(self, target_pos)
         if next_move is not None:
             done_move = map_wrapper.move_entity(self.pos, next_move)

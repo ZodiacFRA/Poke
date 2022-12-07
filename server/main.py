@@ -20,7 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("./maps/small")
+        self.map_wrapper = MapWrapper("./maps/medium")
 
         ### Networking
         self.incoming_messages = []
