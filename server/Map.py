@@ -84,7 +84,7 @@ class MapWrapper(object):
         self.map_events.append({
             "type": "update_entity",
             "pos": pos,
-            "new_sprite_idx": new_sprite_idx
+            "entity": new_sprite_idx
         })
 
     def get(self, pos, top=True):
