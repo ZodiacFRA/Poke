@@ -191,10 +191,10 @@ class App(object):
         player = self.living_entities.pop(engine_id)
         for pet in player.pets:
             self.living_entities.pop(pet.id)
+            self.map_wrapper.delete_entity(pet.pos)
         self.map_wrapper.delete_entity(player.pos)
 
     def on_msg_received(self, client, server, message):
-        # print(message)  # DEBUG:
         self.incoming_messages.append((client, message))
 
 
