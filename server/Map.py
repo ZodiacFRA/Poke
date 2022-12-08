@@ -76,7 +76,11 @@ class MapWrapper(object):
         # Entity needs to change direction before moving, return 1
         if entity_from.direction != -1 and move_direction != entity_from.direction:
             entity_from.direction = move_direction
-            self.update_entity(from_pos, entity_from.get_sprite_idx())
+            self.map_events.append({
+                "type": "update_entity",
+                "pos": from_pos.get_json_repr(),
+                "entity": entity_from.get_sprite_idx()
+            })
             return 1
         else:
             try:
@@ -95,14 +99,6 @@ class MapWrapper(object):
 
     ########################################
     ### Do not affect the map
-    def update_entity(self, pos, new_sprite_idx):
-        """ Only used to add a delta """
-        self.map_events.append({
-            "type": "update_entity",
-            "pos": pos.get_json_repr(),
-            "entity": new_sprite_idx
-        })
-
     def get(self, pos, top=True):
         if top:
             return self.map[pos.y][pos.x].t
