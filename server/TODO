@@ -1,6 +1,5 @@
 #### TODOs:
 
-- add multiple map handling (to go in the houses / caves)
 - handle entity movement with pathfinder when movement is not used and direction is changed instead
 to prevent re running the algo
 
