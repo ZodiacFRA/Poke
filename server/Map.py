@@ -27,8 +27,8 @@ class MapWrapper(object):
     #
     # To sum it up, each of those functions NEEDS to do 3 things:
     # - Action in the self.map object
-    # - Update the entity's own position object
-    # - Add the action to the self.delta list
+    # - Update the entity's own position object OR its direction
+    # - Add the action to the self.map_events list (will be sent through network)
 
     def add_entity(self, pos, entity, is_move=False):
         if entity is None:
