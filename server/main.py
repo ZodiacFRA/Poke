@@ -61,7 +61,11 @@ class App(object):
             self.send_update()
             # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
-            time.sleep(self.delta_time - (time.time() - start_time))
+            to_sleep = self.delta_time - (time.time() - start_time)
+            if to_sleep <= 0:
+                print(f"[-] - Main: Lagging behind: {to_sleep}")
+            else:
+                time.sleep(to_sleep)
 
     def process_living_entities(self):
         for id, entity in self.living_entities.items():
@@ -191,10 +195,10 @@ class App(object):
         player = self.living_entities.pop(engine_id)
         for pet in player.pets:
             self.living_entities.pop(pet.id)
+            self.map_wrapper.delete_entity(pet.pos)
         self.map_wrapper.delete_entity(player.pos)
 
     def on_msg_received(self, client, server, message):
-        # print(message)  # DEBUG:
         self.incoming_messages.append((client, message))
 
 
