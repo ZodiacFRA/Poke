@@ -70,7 +70,6 @@ class MapWrapper(object):
         Returns True if move is successful """
         entity_from = self.map[from_pos.y][from_pos.x].t
         move_direction = from_pos.get_direction(to_pos)
-        print(f"entity {entity_from} going {move_direction}")
         if move_direction is None:  # Invalid move (not cardinal)
             print(f"""[ ] - Map system - Invalid move {from_pos} to {to_pos}""")
             return False

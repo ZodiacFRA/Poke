@@ -23,7 +23,6 @@ const app = {
       background: "#000000",
     });
     document.body.appendChild(this.app.view);
-
     this.addSprites();
     const texturesPromise = PIXI.Assets.load(imgSrc.name);
     texturesPromise.then((textures) => {
@@ -80,9 +79,6 @@ const app = {
           const idx = this.map.top[y][x];
           if (idx > 2 && idx < 7) {
             offsetPlayer = 16;
-          }
-          if (imgSrc.name[idx] != "ground" && imgSrc.name[idx] != "ground2") {
-              console.log(imgSrc.name[idx])
           }
           const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
           sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
