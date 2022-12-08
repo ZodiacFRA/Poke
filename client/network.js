@@ -50,7 +50,6 @@ const server = {
   },
 
   updateMap: function (msgFromServer) {
-    console.log(msgFromServer.type);
     switch (msgFromServer.type) {
       case "add_entity":
         app.map.top[msgFromServer.pos.y][msgFromServer.pos.x] =

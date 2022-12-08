@@ -105,31 +105,16 @@ class App(object):
         old_dir = player.direction
         new_pos = None
         if msg["key"] == "ArrowUp":
-            if player.direction == 0:
-                new_pos = player.pos + self.pos_deltas[0]
-            else:
-                player.direction = 0
+            new_pos = player.pos + self.pos_deltas[0]
         elif msg["key"] == "ArrowRight":
-            if player.direction == 1:
-                new_pos = player.pos + self.pos_deltas[1]
-            else:
-                player.direction = 1
+            new_pos = player.pos + self.pos_deltas[1]
         elif msg["key"] == "ArrowDown":
-            if player.direction == 2:
-                new_pos = player.pos + self.pos_deltas[2]
-            else:
-                player.direction = 2
+            new_pos = player.pos + self.pos_deltas[2]
         elif msg["key"] == "ArrowLeft":
-            if player.direction == 3:
-                new_pos = player.pos + self.pos_deltas[3]
-            else:
-                player.direction = 3
+            new_pos = player.pos + self.pos_deltas[3]
         else:  # Not a movement nor a dir change
             return
-        if player.direction != old_dir:
-            self.map_wrapper.update_entity(player.pos, player.get_sprite_idx())
-        if new_pos and player.pos != new_pos:
-            self.map_wrapper.move_entity(player.pos, new_pos)
+        self.map_wrapper.move_entity(player.pos, new_pos)
 
     ########################################3
     ### Networking

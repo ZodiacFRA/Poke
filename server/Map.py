@@ -59,23 +59,40 @@ class MapWrapper(object):
         return entity
 
     def move_entity(self, from_pos, to_pos, debug=False):
-        """ No need to check for collisions before calling this method
+        """ If direction != -1: must check direction before moving, return flag
+        will change based on [
+            impossible move -> False,
+            changed direction (no pos change) -> 1,
+            moved -> 2
+        ]
+        No need to check for collisions before calling this method
         as it will be checked by add_entity()
         Returns True if move is successful """
-        try:
-            self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t, True)
-        except CollisionError:
-            if debug:
-                print(f"""[ ] - Map system - Could not move {self.map[from_pos.y][from_pos.x].t} to {to_pos}, colliding""")
+        entity_from = self.map[from_pos.y][from_pos.x].t
+        move_direction = from_pos.get_direction(to_pos)
+        print(f"entity {entity_from} going {move_direction}")
+        if move_direction is None:  # Invalid move (not cardinal)
+            print(f"""[ ] - Map system - Invalid move {from_pos} to {to_pos}""")
             return False
-        entity = self.delete_entity(from_pos, True)
-        self.map_events.append({
-            "type": "move_entity",
-            "from_pos": from_pos.get_json_repr(),
-            "to_pos": to_pos.get_json_repr()
-        })
-        return True
-
+        # Entity needs to change direction before moving, return 1
+        if entity_from.direction != -1 and move_direction != entity_from.direction:
+            entity_from.direction = move_direction
+            self.update_entity(from_pos, entity_from.get_sprite_idx())
+            return 1
+        else:
+            try:
+                self.add_entity(to_pos, self.map[from_pos.y][from_pos.x].t, True)
+            except CollisionError:
+                if debug:
+                    print(f"""[ ] - Map system - Could not move {self.map[from_pos.y][from_pos.x].t} to {to_pos}, colliding""")
+                return False
+            entity = self.delete_entity(from_pos, True)
+            self.map_events.append({
+                "type": "move_entity",
+                "from_pos": from_pos.get_json_repr(),
+                "to_pos": to_pos.get_json_repr()
+            })
+            return 2
 
     ########################################
     ### Do not affect the map

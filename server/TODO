@@ -1,0 +1,2 @@
+move living_entities direction handling in the map wrapper
+add multiple map handling (to go in the houses / caves)

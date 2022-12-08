@@ -17,7 +17,6 @@ class Pathfinder(object):
     def get_next_move(self, entity, target_pos):
         path = self.algo.get_shortest_path(entity.pos, target_pos)
         if not path:
-            print(f"""[ ] - Pathfinding system - Could not find path from {entity.pos} to {target_pos}""")
             return None
         if len(path):
             return path.pop(0)

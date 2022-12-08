@@ -54,7 +54,6 @@ const app = {
     // const spriteVal = this.map.top[this.player.pos.y][this.player.pos.x];
     // console.log(spriteVal);
     // const playerSprite = new PIXI.Sprite(this.textures[imgSrc.name[spriteVal]]);
-    console.log(this.map.top);
     const playerSprite = { x: -1, y: -1 };
     playerSprite.x = Math.trunc(SCREEN_WIDTH_TILES / 2) * TILE_SIZE;
     playerSprite.y = Math.trunc(SCREEN_HEIGHT_TILES / 2) * TILE_SIZE;
@@ -81,6 +80,9 @@ const app = {
           const idx = this.map.top[y][x];
           if (idx > 2 && idx < 7) {
             offsetPlayer = 16;
+          }
+          if (imgSrc.name[idx] != "ground" && imgSrc.name[idx] != "ground2") {
+              console.log(imgSrc.name[idx])
           }
           const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
           sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
