@@ -28,7 +28,7 @@ Mat image;
 bool compare_img(int x, int y, int i, int j) {
     for (int a = 0; a < sprite_size; ++a) {
         for (int b = 0; b < sprite_size; ++b) {
-            if (image.at<Vec3b>(x + a, y + b) != image.at<Vec3b>(i + a, j + b)) {
+            if (image.at<Vec3b>(cv::Point(x + a, y + b)) != image.at<Vec3b>(cv::Point(i + a, j + b))) {
                 return false;
             }
         }
@@ -37,21 +37,26 @@ bool compare_img(int x, int y, int i, int j) {
 }
 
 void draw_image(int x , int y, int num, int xa , int ya) {
+    if (y == 6400)
+        return;
     // String windowName = "The Guitar " + std::to_string(x) + " " + std::to_string(y); //Name of the window
     String windowName = "The Guitar " + std::to_string(num); //Name of the window
 
     namedWindow(windowName); // Create a window
     // cv::Rect myROI(x,y,32,32);
-    cv::Rect myROI(x,y,100,100);
+    cv::Rect myROI(x,y,sprite_size,sprite_size);
     cv::Rect myROI2(xa,ya,16,16);
     auto crop = image(myROI);
     auto crop2 = image(myROI2);
 
+
+    cv::imwrite("data/" + std::to_string(num) + ".png", crop);
+
     imshow(windowName, crop); // Show our image inside the created window.
     //waitKey(0); // Wait for any keystroke in the windowll
-    imshow(windowName, crop2); // Show our image inside the created window.
+    // imshow(windowName, crop2); // Show our image inside the created window.
 
-    //waitKey(0); // Wait for any keystroke in the window
+    // waitKey(0); // Wait for any keystroke in the window
 
     destroyWindow(windowName); //destroy the created window
 }
@@ -67,6 +72,31 @@ bool compare_tile_to_refs(int x, int y) {
     }
     id_map[y/sprite_size][x/sprite_size] = ref_table.size();
     return false;
+}
+
+void save_map_to_json(std::string path) {
+    ofstream myfile;
+    myfile.open (path);
+    myfile << "{\"map\": [\n";
+    for (int y = 0; y < id_map.size() - 1; ++y) {
+        myfile << "[";
+        for (int x = 0; x < id_map.size(); ++x) {
+            myfile << std::right << std::setw(5) << id_map[x][y] << ",";
+        }
+        myfile << std::right << std::setw(5) << id_map[id_map.size()-1][y] << "],\n";
+
+    }
+    myfile << "],\n\"ref\":{";
+    for (int x = 0; x < ref_table.size() - 1; ++x) {
+            myfile << "\"" << x << "\": [" << ref_table[x][0] << ", " << ref_table[x][1] << "],\n";
+            std::cout << ref_table[x][0] << ", " << ref_table[x][1] <<std::endl;
+            draw_image(ref_table[x][0],ref_table[x][1],x,0,0);
+    }
+    myfile << "\"" << ref_table.size() - 1 << "\": [" << ref_table[ref_table.size() - 1][0] << ", " << ref_table[ref_table.size() - 1][1] << "],\n";
+    myfile << "}}";
+    myfile.close();
+
+    std::cout << "final size: " << ref_table.size() << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -87,27 +117,7 @@ int main(int argc, char** argv)
         }
     }
 
-    ofstream myfile;
-    myfile.open ("map_out.json");
-    myfile << "{\"map\": [\n";
-    for (int y = 0; y < id_map.size() - 1; ++y) {
-        myfile << "[";
-        for (int x = 0; x < id_map.size(); ++x) {
-            myfile << std::right << std::setw(5) << id_map[x][y] << ",";
-        }
-        myfile << std::right << std::setw(5) << id_map[id_map.size()-1][y] << "],\n";
-
-    }
-    myfile << "],\n\"ref\":{";
-    for (int x = 0; x < ref_table.size() - 1; ++x) {
-            myfile << "\"" << x << "\": [" << ref_table[x][0] << ", " << ref_table[x][1] << "],\n";
-    }
-    myfile << "\"" << ref_table.size() - 1 << "\": [" << ref_table[ref_table.size() - 1][0] << ", " << ref_table[ref_table.size() - 1][1] << "],\n";
-    myfile << "}}";
-    myfile.close();
-
-    std::cout << "final size: " << ref_table.size() << std::endl;
-
+    save_map_to_json("map_out.json");
 
     return 0;
 }
