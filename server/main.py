@@ -61,7 +61,11 @@ class App(object):
             self.send_update()
             # self.map_wrapper.display_ascii()  # DEBUG:
             Global.turn_idx += 1
-            time.sleep(self.delta_time - (time.time() - start_time))
+            to_sleep = self.delta_time - (time.time() - start_time)
+            if to_sleep <= 0:
+                print(f"[-] - Main: Lagging behind: {to_sleep}")
+            else:
+                time.sleep(to_sleep)
 
     def process_living_entities(self):
         for id, entity in self.living_entities.items():
