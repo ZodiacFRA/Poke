@@ -1,5 +1,4 @@
 #### TODOs:
-
 - handle entity movement with pathfinder when movement is not used and direction is changed instead
 to prevent re running the algo
 

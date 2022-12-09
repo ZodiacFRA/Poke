@@ -3,7 +3,7 @@ import numpy as np
 import json
 
 # Opening JSON file
-img = cv2.imread('/home/seub/Downloads/mathieugrosfdp.png')
+img = cv2.imread('/home/zodiac/code/perso/Poke/utils/bourg_pal.png')
 f = open('map_out.json')
 data = json.load(f)
 

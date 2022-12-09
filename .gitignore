@@ -5,3 +5,8 @@ venv
 CMakeFiles
 build
 BUs/
+
+*.cmake
+Makefile
+ImageToMap
+CMakeCache.txt

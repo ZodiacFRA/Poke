@@ -102,7 +102,7 @@ void save_map_to_json(std::string path) {
 int main(int argc, char** argv)
 {
     // Read the image file
-    image = imread("/home/seub/Downloads/mathieugrosfdp.png");
+    image = imread("/home/zodiac/code/perso/Poke/utils/bourg_pal.png");
 
     auto size = image.size();
     std::cout << size.height << " " << size.width << std::endl;
