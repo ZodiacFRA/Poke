@@ -102,7 +102,11 @@ void save_map_to_json(std::string path) {
 int main(int argc, char** argv)
 {
     // Read the image file
-    image = imread("/home/zodiac/code/perso/Poke/utils/bourg_pal.png");
+    if (argc != 2) {
+        std::cout << "Give the picture you want to slice as argument you mother fucker." << std::endl;
+        return -1;
+    }
+    image = imread(argv[1]);
 
     auto size = image.size();
     std::cout << size.height << " " << size.width << std::endl;
