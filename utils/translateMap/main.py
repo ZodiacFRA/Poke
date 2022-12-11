@@ -19,7 +19,7 @@ def is_top(value):
 	return False
 
 
-map_src_file = open("map_out.json")
+map_src_file = open("map_src.json")
 map_data = json.load(map_src_file)
 
 dic_file = open("dict.json")
@@ -52,13 +52,9 @@ for row in map_data["map"]:
 			tmp_row_top.append(obj)
 	bot_final.append(tmp_row_bot)
 	top_final.append(tmp_row_top)
-	
 
-# Print in JSON - HARDCODE BECAUSE TIRED
-print("{")
-print("\t\"map\": {")
-print("\t\t\"top\": ", top_final)
-print("\t\t\"bottom\": ", bot_final)
-print("\t}")
-print("}")
 
+map_content = {"top": top_final, "bot": bot_final}
+obj = {"map": map_content}
+
+print(json.dumps(obj, indent=4))
