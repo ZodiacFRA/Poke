@@ -71,7 +71,7 @@ const app = {
         if (this.map.top[y][x] >= 0) {
           let offsetPlayer = 0;
           const idx = this.map.top[y][x];
-          if (idx > 2 && idx < 7) {
+          if (idx > 999 && idx < 2000) {
             offsetPlayer = 8;
           }
           const sprite = new PIXI.Sprite(this.textures[idx]);
