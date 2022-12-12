@@ -22,18 +22,19 @@ def get_map_from_json_file(map_filepath):
         for x_idx in range(len(raw_map["top"][y_idx])):
             top_entity_info = raw_map["top"][y_idx][x_idx]
             bottom_entity_info = raw_map["bot"][y_idx][x_idx]
-            if len(bottom_entity_info) == 0 and len(top_entity_info) == 0:
-                map_line.append(Tile())
-            else:
-                if top_entity_info and top_entity_info[0] == "wall":
-                    map_line.append(Tile(
-                        Ground(Position(y_idx, x_idx), -1),
-                        Wall(Position(y_idx, x_idx), top_entity_info[1])
-                    ))
-                elif bottom_entity_info and bottom_entity_info[0] == "ground":
-                    map_line.append(Tile(
-                        Ground(Position(y_idx, x_idx), bottom_entity_info[1])
-                    ))
+            tmp_tile = Tile()
+            if bottom_entity_info:
+                if bottom_entity_info[0] == "ground":
+                    tmp_tile.b = Ground(Position(y_idx, x_idx), bottom_entity_info[1])
+            if top_entity_info:
+                # TODO: Remove the ground assignment, the map json should
+                # have a ground beneath walls on its own
+                tmp_tile.b = Ground(Position(y_idx, x_idx), -1)
+                if top_entity_info[0] == "wall":
+                    tmp_tile.t = Wall(Position(y_idx, x_idx), top_entity_info[1])
+                elif top_entity_info[0] == "door":
+                    tmp_tile.t = Door(Position(y_idx, x_idx), top_entity_info[1])
+            map_line.append(tmp_tile)
         map.append(map_line)
     return map, y_size, x_size
 

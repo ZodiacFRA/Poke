@@ -32,6 +32,12 @@ class Wall(Entity):
         self.collider = 1
         self.sprite_idx = sprite_idx
 
+class Door(Entity):
+    def __init__(self, pos, sprite_idx=3):
+        super().__init__(pos)
+        self.collider = 0
+        self.sprite_idx = sprite_idx
+
 ##############################################
 
 class LivingEntity(Entity):
@@ -73,6 +79,4 @@ class Pet(LivingEntity):
         )
         target_pos = self.pos.get_closest(tiles)
         if target_pos:
-            next_move = map_wrapper.pathfinder.get_next_move(self, target_pos)
-            if next_move is not None:
-                done_move = map_wrapper.move_entity(self.pos, next_move)
+            map_wrapper.go_towards_target_pos(target_pos)

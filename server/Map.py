@@ -2,7 +2,7 @@ import random
 
 from Entities import *
 from Pathfinder import Pathfinder
-from utils import get_map_from_file
+from utils import get_map_from_json_file
 from HelperClasses import Position, Tile
 from ErrorClasses import *
 
@@ -11,7 +11,7 @@ class MapWrapper(object):
     def __init__(self, map_filepath):
         super(MapWrapper, self).__init__()
         self.pathfinder = Pathfinder(self)
-        self.map, self.y_size, self.x_size = get_map_from_file(map_filepath)
+        self.map, self.y_size, self.x_size = get_map_from_json_file(map_filepath)
         self.map_events = []
 
     ########################################
@@ -123,6 +123,14 @@ class MapWrapper(object):
             return True
         # Floor and Colliding entity -> colliding
         return True
+
+    def go_towards_target_pos(self, target_pos):
+        next_move = self.pathfinder.get_next_move(self, target_pos)
+        if next_move is not None:
+            if self.move_entity(self.pos, next_move) == 2:  # If move successful
+                pass  # TODO: if the move has not been done prevent the pathdfinder
+                # class from popping this move
+
 
     def get_available_position(self, retries=100):
         """ Random search """

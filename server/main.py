@@ -38,7 +38,7 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
-        self.delta_time = 1/4  # 1/UpdatePerSecond
+        self.delta_time = 1/6  # 1/UpdatePerSecond
         Global.turn_idx = 0
         ### Utils
         self.pos_deltas = (
