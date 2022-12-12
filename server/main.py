@@ -77,7 +77,7 @@ class App(object):
     def add_new_player(self, client, msg):
         self.send_full_map()
         player_pos = self.map_wrapper.get_available_position()
-        player_pos = Position(264, 78)
+        player_pos = Position(78, 264)
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,
@@ -86,7 +86,7 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
-        self.add_pet(player)
+        # self.add_pet(player)
 
     def add_pet(self, player, position=None):
         pet_position = position if position else self.map_wrapper.get_available_position()

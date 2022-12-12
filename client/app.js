@@ -1,7 +1,7 @@
 const SCREEN_WIDTH_TILES = 15;
 const SCREEN_HEIGHT_TILES = 9;
 const PLAYER_ID = "UnDesSix";
-const TILE_SIZE = 32;
+const TILE_SIZE = 16;
 const FPS = 30;
 
 const app = {
@@ -23,19 +23,13 @@ const app = {
       background: "#000000",
     });
     document.body.appendChild(this.app.view);
-    this.addSprites();
+    imgSrc.buildPathArray();
     const texturesPromise = PIXI.Assets.load(imgSrc.name);
     texturesPromise.then((textures) => {
       this.textures = textures;
+      console.log(imgSrc.name[200]);
       server.listen();
     });
-  },
-
-  addSprites: function () {
-    for (let i = 0; i < imgSrc.path.length; i++) {
-      imgSrc.name[i] = imgSrc.path[i].split("/")[1].split(".")[0];
-      PIXI.Assets.add(imgSrc.name[i], imgSrc.path[i]);
-    }
   },
 
   displayMap: function () {
@@ -69,7 +63,7 @@ const app = {
           // idx matches with the images index. If map[y][x] is 0, then idx = 0 and
           // the function will load imgSrc[0] as a texture.
           const idx = this.map.bottom[y][x];
-          const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
+          const sprite = new PIXI.Sprite(this.textures[idx]);
           sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
           sprite.y = y * TILE_SIZE + topLeftTileIdx.y;
           bottomContainer.addChild(sprite);
@@ -78,9 +72,9 @@ const app = {
           let offsetPlayer = 0;
           const idx = this.map.top[y][x];
           if (idx > 2 && idx < 7) {
-            offsetPlayer = 16;
+            offsetPlayer = 8;
           }
-          const sprite = new PIXI.Sprite(this.textures[imgSrc.name[idx]]);
+          const sprite = new PIXI.Sprite(this.textures[idx]);
           sprite.x = x * TILE_SIZE + topLeftTileIdx.x;
           sprite.y = y * TILE_SIZE + topLeftTileIdx.y - offsetPlayer;
           topContainer.addChild(sprite);
