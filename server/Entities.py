@@ -63,7 +63,7 @@ class Player(LivingEntity):
         self.collider = 2
         self.name = name
         self.inventory = {}
-        self.pets = []
+        self.pokedex = []
 
 class Pet(LivingEntity):
     def __init__(self, id, pos, owner, sprite_idx=1004, speed=1):
@@ -80,4 +80,4 @@ class Pet(LivingEntity):
         )
         target_pos = self.pos.get_closest(tiles)
         if target_pos:
-            map_wrapper.go_towards_target_pos(target_pos)
+            map_wrapper.go_towards_target_pos(self, target_pos)

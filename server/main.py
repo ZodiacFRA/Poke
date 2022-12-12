@@ -97,7 +97,7 @@ class App(object):
         )
         self.living_entities[pet.id] = pet
         self.map_wrapper.add_entity(pet.pos, pet)
-        self.living_entities[player.id].pets.append(pet)
+        self.living_entities[player.id].pokedex.append(pet)
         print(f"Pet spawned at position {pet_position}")
 
     def do_movement(self, client, msg):
@@ -179,7 +179,7 @@ class App(object):
         self.incoming_messages = tmp
 
         player = self.living_entities.pop(engine_id)
-        for pet in player.pets:
+        for pet in player.pokedex:
             self.living_entities.pop(pet.id)
             self.map_wrapper.delete_entity(pet.pos)
         self.map_wrapper.delete_entity(player.pos)

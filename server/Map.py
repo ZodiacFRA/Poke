@@ -131,13 +131,12 @@ class MapWrapper(object):
         # Floor and Colliding entity -> colliding
         return True
 
-    def go_towards_target_pos(self, target_pos):
-        next_move = self.pathfinder.get_next_move(self, target_pos)
+    def go_towards_target_pos(self, entity, target_pos):
+        next_move = self.pathfinder.get_next_move(entity, target_pos)
         if next_move is not None:
             if self.move_entity(self.pos, next_move) == 2:  # If move successful
                 pass  # TODO: if the move has not been done prevent the pathdfinder
                 # class from popping this move
-
 
     def get_available_position(self, retries=100):
         """ Random search """
