@@ -13,7 +13,7 @@ class Entity(object):
         self.direction = -1
 
     def __repr__(self):
-        # Remove the <class Entities. and the >
+        # Remove the "<class Entities." and the " >"
         return f"{str(type(self))[17:-2]} - {self.pos}"
 
     def get_sprite_idx(self):
@@ -33,8 +33,9 @@ class Wall(Entity):
         self.sprite_idx = sprite_idx
 
 class Door(Entity):
-    def __init__(self, pos, sprite_idx=3):
+    def __init__(self, pos, to_pos, sprite_idx=3):
         super().__init__(pos)
+        self.to_pos = to_pos
         self.collider = 0
         self.sprite_idx = sprite_idx
 

@@ -33,7 +33,7 @@ def get_map_from_json_file(map_filepath):
                 if top_entity_info[0] == "wall":
                     tmp_tile.t = Wall(Position(y_idx, x_idx), top_entity_info[1])
                 elif top_entity_info[0] == "door":
-                    tmp_tile.t = Door(Position(y_idx, x_idx), top_entity_info[1])
+                    tmp_tile.t = Door(Position(y_idx, x_idx), top_entity_info[1], top_entity_info[2])
             map_line.append(tmp_tile)
         map.append(map_line)
     return map, y_size, x_size

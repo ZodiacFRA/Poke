@@ -95,6 +95,9 @@ class MapWrapper(object):
                 "from_pos": from_pos.get_json_repr(),
                 "to_pos": to_pos.get_json_repr()
             })
+            # Check if the tile we just moved on is a door, if so teleport if possible
+            if type(self.map[to_pos.y][to_pos.x].t) is Door:
+                return self.move_entity(to_pos, self.map[to_pos.y][to_pos.x].t.to_pos)
             return 2
 
     ########################################
