@@ -58,7 +58,7 @@ class MapWrapper(object):
             })
         return entity
 
-    def move_entity(self, from_pos, to_pos, debug=False):
+    def move_entity(self, from_pos, to_pos, teleported=False, debug=False):
         """ If direction != -1: must check direction before moving, return flag
         will change based on [
             impossible move -> False,
@@ -96,8 +96,12 @@ class MapWrapper(object):
                 "to_pos": to_pos.get_json_repr()
             })
             # Check if the tile we just moved on is a door, if so teleport if possible
-            if type(self.map[to_pos.y][to_pos.x].t) is Door:
-                return self.move_entity(to_pos, self.map[to_pos.y][to_pos.x].t.to_pos)
+            if not teleported and type(self.map[to_pos.y][to_pos.x].t) is Door:
+                return self.move_entity(
+                    to_pos,
+                    self.map[to_pos.y][to_pos.x].t.to_pos,
+                    teleported=True
+                )
             return 2
 
     ########################################
