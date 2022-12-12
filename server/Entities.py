@@ -51,7 +51,7 @@ class LivingEntity(Entity):
         pass
 
 class Player(LivingEntity):
-    def __init__(self, id, pos, name, sprite_idx=3, speed=1):
+    def __init__(self, id, pos, name, sprite_idx=1000, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
         self.collider = 2
         self.name = name
@@ -59,7 +59,7 @@ class Player(LivingEntity):
         self.pets = []
 
 class Pet(LivingEntity):
-    def __init__(self, id, pos, owner, sprite_idx=7, speed=1):
+    def __init__(self, id, pos, owner, sprite_idx=1004, speed=1):
         super().__init__(id, pos, speed, sprite_idx)
         self.collider = 2
         self.owner = owner
