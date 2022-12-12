@@ -39,13 +39,21 @@ for row in map_data["map"]:
 	tmp_row_bot = []
 	tmp_row_top = []
 	for sprite_idx in row:
-		if is_bot(sprite_idx) or is_top(sprite_idx):
-			if is_bot(sprite_idx):
-				obj = ("ground", sprite_idx)
-				tmp_row_bot.append(obj)
-			else:
-				obj = ("wall", sprite_idx)
-				tmp_row_top.append(obj)
+		if is_bot(sprite_idx) and is_top(sprite_idx):
+				obj_top = ("ground", sprite_idx)
+				obj_bot = ("wall", sprite_idx)
+				tmp_row_bot.append(obj_bot)
+				tmp_row_top.append(obj_top)
+		elif is_bot(sprite_idx):
+				obj_bot = ("ground", sprite_idx)
+				obj_top = ()
+				tmp_row_bot.append(obj_bot)
+				tmp_row_top.append(obj_top)
+		elif is_top(sprite_idx):
+				obj_bot = ()
+				obj_top = ("wall", sprite_idx)
+				tmp_row_bot.append(obj_bot)
+				tmp_row_top.append(obj_top)
 		else:
 			obj = ()
 			tmp_row_bot.append(obj)
@@ -54,7 +62,11 @@ for row in map_data["map"]:
 	top_final.append(tmp_row_top)
 
 
+# print(len(bot_final))
+# print(len(top_final))
+
 map_content = {"top": top_final, "bot": bot_final}
 obj = {"map": map_content}
 
 print(json.dumps(obj, indent=4))
+
