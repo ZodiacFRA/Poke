@@ -38,7 +38,7 @@ class Dijkstra(object):
         self.init_request(from_pos, target_pos)
         return self.compute()
 
-    def get_tiles_at_distance_from(self, from_pos, requested_distance):
+    def get_positions_at_distance_from_position(self, from_pos, requested_distance):
         self.scan_zone(from_pos, requested_distance)
         tmp = []
         while not tmp:

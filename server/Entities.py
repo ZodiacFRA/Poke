@@ -1,5 +1,6 @@
 import random
 import collections
+from operator import attrgetter
 
 from ErrorClasses import ImpossibleMoveError
 """ For now all Entities have a position, but only the living entities get an id
@@ -73,11 +74,25 @@ class Pet(LivingEntity):
         self.requested_distance_from_owner = 3
 
     def do_turn(self, map_wrapper, living_entities):
-        if self.pos.get_distance_from(self.owner.pos) == self.requested_distance_from_owner:
-            return
-        tiles = map_wrapper.pathfinder.get_tiles_at_distance_from(
+        positions = map_wrapper.pathfinder.get_positions_at_distance_from_position(
             self.owner.pos, self.requested_distance_from_owner
         )
-        target_pos = self.pos.get_closest(tiles)
+        target_pos = self.get_tile_behind(positions)
+        # if target_pos == self.pos:
+            # return
+        if not target_pos:
+            target_pos = self.pos.get_closest(positions)
         if target_pos:
             map_wrapper.go_towards_target_pos(self, target_pos)
+
+    def get_tile_behind(self, positions):
+        player_behind_direction = (self.owner.direction + 2) % 4
+        if player_behind_direction == 0:
+            res = min(positions, key=attrgetter('y'))
+        elif player_behind_direction == 1:
+            res = max(positions, key=attrgetter('x'))
+        elif player_behind_direction == 2:
+            res = max(positions, key=attrgetter('y'))
+        elif player_behind_direction == 3:
+            res = min(positions, key=attrgetter('x'))
+        return res

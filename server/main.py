@@ -105,7 +105,7 @@ class App(object):
         self.add_pet(player)
 
     def add_pet(self, player, position=None):
-        availableTiles = self.map_wrapper.pathfinder.get_tiles_at_distance_from(
+        availableTiles = self.map_wrapper.pathfinder.get_positions_at_distance_from_position(
             player.pos, 10
         )
         if availableTiles:

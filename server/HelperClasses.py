@@ -13,9 +13,7 @@ class Position(object):
         return False
 
     def __ne__(self, other):
-        if self.y == other.y and self.x == other.x:
-            return False
-        return True
+        return not self.__eq__(other)
 
     def __repr__(self):
         return f"y:{self.y}/x:{self.x}"
@@ -26,7 +24,7 @@ class Position(object):
     def get_tuple(self):
         return self.y, self.x
 
-    def get_direction(self, target):
+    def get_cardinal_direction(self, target):
         """ Return the direction to the target
         returns None if target isn't in one of the 4 cardinal positions
         0: Top, 1: Right, 2: Bottom, 3: Left """
@@ -39,6 +37,21 @@ class Position(object):
             if target.x == self.x - 1:
                 return 3
             if target.x == self.x + 1:
+                return 1
+        return None
+
+    def get_direction(self, target):
+        """ Return the direction to the target
+        0: Top, 1: Right, 2: Bottom, 3: Left """
+        if target.x == self.x:
+            if target.y == self.y:
+                return 0
+            if target.y == self.y:
+                return 2
+        if target.y == self.y:
+            if target.x == self.x:
+                return 3
+            if target.x == self.x:
                 return 1
         return None
 

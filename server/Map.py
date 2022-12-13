@@ -72,7 +72,7 @@ class MapWrapper(object):
         Returns True if move is successful
         """
         entity_from = self.map[from_pos.y][from_pos.x].t
-        move_direction = from_pos.get_direction(to_pos)
+        move_direction = from_pos.get_cardinal_direction(to_pos)
         if move_direction is None:  # Invalid move (not cardinal)
             print(f"""[ ] - Map system - Invalid move {from_pos} to {to_pos}""")
             return False
@@ -143,6 +143,8 @@ class MapWrapper(object):
         return True
 
     def go_towards_target_pos(self, entity, target_pos):
+        if target_pos == entity.pos:
+            return
         next_move = self.pathfinder.get_next_move(entity, target_pos)
         if next_move is not None:
             if self.move_entity(entity.pos, next_move) == 2:  # If move successful

@@ -21,5 +21,5 @@ class Pathfinder(object):
         if len(path):
             return path.pop(0)
 
-    def get_tiles_at_distance_from(self, target_pos, requested_distance):
-        return self.algo.get_tiles_at_distance_from(target_pos, requested_distance)
+    def get_positions_at_distance_from_position(self, target_pos, requested_distance):
+        return self.algo.get_positions_at_distance_from_position(target_pos, requested_distance)
