@@ -57,7 +57,7 @@ const app = {
                 var top_idx = this.map.top[topLeftTileIdx.y + y][topLeftTileIdx.x + x];
                 if (top_idx >= 0) {
                     let offsetPlayer = 0;
-                    if (top_idx > 999 && top_idx < 2000) {
+                    if (top_idx > 999 && top_idx < 1004) {
                         offsetPlayer = 8;
                     }
                     const sprite = new PIXI.Sprite(this.textures[top_idx]);
