@@ -86,6 +86,8 @@ class Pet(LivingEntity):
             map_wrapper.go_towards_target_pos(self, target_pos)
 
     def get_tile_behind(self, positions):
+        if not positions:
+            return
         player_behind_direction = (self.owner.direction + 2) % 4
         if player_behind_direction == 0:
             res = min(positions, key=attrgetter('y'))

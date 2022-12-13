@@ -124,6 +124,8 @@ class App(object):
 
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
+        if not engine_id:
+            return
         player = self.living_entities[engine_id]
         old_dir = player.direction
         new_pos = None
