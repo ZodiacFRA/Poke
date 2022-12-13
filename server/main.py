@@ -124,7 +124,8 @@ class App(object):
 
     def do_movement(self, client, msg):
         engine_id = self.id_manager.get_engine_id(client["id"])
-        if not engine_id:
+        if engine_id is None:
+            print(f"""[-] - Received movement message from client {client["id"]} not found engine id""")
             return
         player = self.living_entities[engine_id]
         old_dir = player.direction
@@ -169,7 +170,6 @@ class App(object):
         # TODO: This condition may need to change with the addition of self.gameplay_events
         if len(self.map_wrapper.map_events) == 0:
             return
-
         # Prepare the base of the message (which will be sent to every player)
         base_msg = {
             "msg_type": "update",
