@@ -19,7 +19,6 @@ class Dijkstra(object):
     """ Dijkstra pathfinding algorithm implementation
     TODO: Find a way to avoid top colliding entities as well """
     def __init__(self, map_wrapper):
-        self.deltas = (Position(-1, 0), Position(0, 1), Position(1, 0), Position(0, -1))
         self.map_wrapper = map_wrapper
 
     def init_request(self, from_pos, target_pos):
@@ -68,7 +67,7 @@ class Dijkstra(object):
         return 0
 
     def explore_neighbors(self, current_node, distance=0, collide_treshold=9999):
-        for delta in self.deltas:
+        for delta in Globals.deltas:
             tmp_pos = current_node.pos + delta
             # If is a valid position (is a node)
             if not self.map_wrapper.is_colliding_pos(tmp_pos, collide_treshold):

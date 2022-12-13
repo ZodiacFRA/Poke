@@ -1,5 +1,6 @@
 import random
 
+import Globals
 from Entities import *
 from Pathfinder import Pathfinder
 from utils import get_map_from_json_file
@@ -106,11 +107,14 @@ class MapWrapper(object):
 
     ########################################
     ### Do not affect the map
-    def get(self, pos, top=True):
-        if top:
+    def get(self, pos, top_entity_only=True):
+        if top_entity_only:
             return self.map[pos.y][pos.x].t
         else:
             return self.map[pos.y][pos.x].b
+
+    def get_tile_in_front(self, pos, direction, top_entity_only=True):
+        return self.get(pos + Globals.deltas[direction], top_entity_only)
 
     def is_colliding_pos(self, pos, collide_treshold=99999):
         # OOB -> colliding

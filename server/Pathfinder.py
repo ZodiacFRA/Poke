@@ -1,6 +1,6 @@
 from pprint import pprint
 
-import Global
+import Globals
 from Dijkstra import Dijkstra
 
 

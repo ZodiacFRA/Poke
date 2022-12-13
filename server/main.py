@@ -7,7 +7,7 @@ from pprint import pprint
 # https://github.com/Pithikos/python-websocket-server#api
 from websocket_server import WebsocketServer
 
-import Global
+import Globals
 from Entities import *
 from Map import MapWrapper
 from IdManager import IdManager
@@ -21,6 +21,7 @@ class App(object):
         self.id_manager = IdManager()
         self.living_entities = {}
         self.map_wrapper = MapWrapper("../utils/map_gen1_rot.json")
+        self.gameplay_events = []
 
         ### Networking
         self.incoming_messages = []
@@ -38,38 +39,49 @@ class App(object):
         self.server.set_fn_message_received(self.on_msg_received)
         self.server.run_forever(threaded=True)
         ### Game loop
+        self.start_time = time.time()
         self.delta_time = 1/6  # 1/UpdatePerSecond
-        Global.turn_idx = 0
-        ### Utils
-        self.pos_deltas = (
-            Position(-1, 0),
-            Position(0, 1),
-            Position(1, 0),
-            Position(0, -1)
-        )
-
-        self.launch()
+        Globals.turn_idx = 0
 
     def launch(self):
         while True:
-            # print('-'*50)  # DEBUG:
-            start_time = time.time()
             self.process_incoming_messages()
-
             self.process_living_entities()
-
-            self.send_update()
-            # self.map_wrapper.display_ascii()  # DEBUG:
-            Global.turn_idx += 1
-            to_sleep = self.delta_time - (time.time() - start_time)
-            if to_sleep <= 0:
-                print(f"[-] - Main: Lagging behind: {to_sleep}")
-            else:
-                time.sleep(to_sleep)
+            self.send_updates()
+            self.tick()
 
     def process_living_entities(self):
         for id, entity in self.living_entities.items():
             entity.do_turn(self.map_wrapper, self.living_entities)
+
+    def tick(self, debug=False):
+        Globals.turn_idx += 1
+        to_sleep = self.delta_time - (time.time() - self.start_time)
+        if to_sleep <= 0:
+            print(f"[-] - Main: Lagging behind: {to_sleep}")
+        else:
+            time.sleep(to_sleep)
+        self.start_time = time.time()
+        if debug:
+            print('-'*50)
+
+    ########################################
+    ### Gameplay
+    def check_for_player_interaction(self, player):
+        # If another living entity in front of the player
+        front_entity = self.map_wrapper.get_tile_in_front(
+            player.pos,
+            player.direction,
+            True
+        )
+        if type(front_entity) == Player:
+            print("possible player interaction detected")
+            self.gameplay_events.append({
+                "type": "player_interaction",
+                "player_1": player,
+                "player_2": front_entity,
+                "options": ["talk to", "fight"]
+            })
 
     ########################################
     ### Message processing
@@ -78,6 +90,7 @@ class App(object):
         self.send_full_map()
         player_pos = self.map_wrapper.get_available_position()
         # player_pos = Position(78, 264)
+        player_pos = Position(227, 134)
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,
@@ -106,16 +119,17 @@ class App(object):
         old_dir = player.direction
         new_pos = None
         if msg["key"] == "ArrowUp":
-            new_pos = player.pos + self.pos_deltas[0]
+            new_pos = player.pos + Globals.deltas[0]
         elif msg["key"] == "ArrowRight":
-            new_pos = player.pos + self.pos_deltas[1]
+            new_pos = player.pos + Globals.deltas[1]
         elif msg["key"] == "ArrowDown":
-            new_pos = player.pos + self.pos_deltas[2]
+            new_pos = player.pos + Globals.deltas[2]
         elif msg["key"] == "ArrowLeft":
-            new_pos = player.pos + self.pos_deltas[3]
+            new_pos = player.pos + Globals.deltas[3]
         else:  # Not a movement nor a dir change
             return
         self.map_wrapper.move_entity(player.pos, new_pos)
+        self.check_for_player_interaction(player)
 
     ########################################3
     ### Networking
@@ -139,14 +153,14 @@ class App(object):
                     func(client, msg)
                     done_clients.append(client["id"])
 
-    def send_update(self):
+    def send_updates(self):
         """ Send map and game events deltas """
         if len(self.map_wrapper.map_events) == 0:
             return
         # Prepare the base of the message (which will be sent to every player)
         delta = {
             "msg_type": "update",
-            "turn_idx": Global.turn_idx,
+            "turn_idx": Globals.turn_idx,
             "data": [],
             "player_pos": {"y": -1, "x": -1}
         }
@@ -190,3 +204,4 @@ class App(object):
 
 if __name__ == '__main__':
     app = App()
+    app.launch()
