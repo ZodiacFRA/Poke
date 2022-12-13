@@ -4,12 +4,12 @@ const imgSrc = {
 
     buildPathArray: function() {
         for (let i = 1; i <= 211; i++) {
-            tmp_str = "sprites/" + i + ".png";
+            tmp_str = "../sprites/" + i + ".png";
             this.pathArray.push(tmp_str);
             this.name.push(i.toString());
         }
         for (let i = 1000; i < 1008; i++) {
-            tmp_str = "sprites/" + i + ".png";
+            tmp_str = "../sprites/" + i + ".png";
             this.pathArray.push(tmp_str);
             this.name.push(i.toString());
         }

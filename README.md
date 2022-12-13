@@ -4,14 +4,14 @@
 - full map to be used by "image to map"
 - tilesheet not used atm
 
-#### /utils/image_to_map: done by seb to cut a mapimage, split it into sprites and deduplicate them
+#### /utils/image_to_sprite_map: done by seb to cut a mapimage, split it into sprites and deduplicate them
 + output a json with all the sprites indexes placed on the map
 
 #### /utils/sprites
 sprites created by image to map, but sorted by hand into categories to create the dict.json
 which is later used by translateMap to convert sprites idxes into Entities
 
-#### /utils/translateMap
+#### /utils/sprite_map_to_map
 Convert the sprites indexes json into one usable by the map loader, where the entites types have been defined
 
 
