@@ -1,4 +1,6 @@
 import json
+import numpy as np
+
 
 def is_bot(value):
 	for i in range(len(bot)):
@@ -19,7 +21,7 @@ def is_top(value):
 	return False
 
 
-map_src_file = open("map_src.json")
+map_src_file = open("../image_to_map/map_out.json")
 map_data = json.load(map_src_file)
 
 dic_file = open("dict.json")
@@ -45,10 +47,10 @@ for row in map_data["map"]:
 				tmp_row_bot.append(obj_bot)
 				tmp_row_top.append(obj_top)
 		elif is_bot(sprite_idx):
-				obj_bot = ("ground", sprite_idx)
-				obj_top = ()
-				tmp_row_bot.append(obj_bot)
-				tmp_row_top.append(obj_top)
+			obj_bot = ("ground", sprite_idx)
+			obj_top = ()
+			tmp_row_bot.append(obj_bot)
+			tmp_row_top.append(obj_top)
 		elif is_top(sprite_idx):
 				obj_bot = ()
 				obj_top = ("wall", sprite_idx)
@@ -61,12 +63,17 @@ for row in map_data["map"]:
 	bot_final.append(tmp_row_bot)
 	top_final.append(tmp_row_top)
 
-
+# first rotate
+top_final = np.rot90(np.array(top_final, dtype=object))
+bot_final = np.rot90(np.array(bot_final, dtype=object))
+top_final = np.flip(top_final, 0)
+bot_final = np.flip(bot_final, 0)
 # print(len(bot_final))
 # print(len(top_final))
 
-map_content = {"top": top_final, "bot": bot_final}
+map_content = {"top": top_final.tolist(), "bottom": bot_final.tolist()}
 obj = {"map": map_content}
 
-print(json.dumps(obj, indent=4))
-
+with open("map_loadable.json", 'w') as f:
+	f.write(json.dumps(obj))
+# print(json.dumps(obj, indent=4))

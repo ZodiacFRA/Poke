@@ -20,7 +20,8 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        self.map_wrapper = MapWrapper("../utils/map_gen1_rot.json")
+        # self.map_wrapper = MapWrapper("../utils/map_gen1_rot.json")
+        self.map_wrapper = MapWrapper("../utils/translateMap/map_loadable.json")
         self.gameplay_events = []
 
         ### Networking
@@ -93,7 +94,7 @@ class App(object):
         self.send_full_map()
         player_pos = self.map_wrapper.get_available_position()
         # player_pos = Position(78, 264)
-        player_pos = Position(227, 134)
+        player_pos = Position(185, 350)
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,

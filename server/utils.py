@@ -21,7 +21,7 @@ def get_map_from_json_file(map_filepath):
         map_line = []
         for x_idx in range(len(raw_map["top"][y_idx])):
             top_entity_info = raw_map["top"][y_idx][x_idx]
-            bottom_entity_info = raw_map["bot"][y_idx][x_idx]
+            bottom_entity_info = raw_map["bottom"][y_idx][x_idx]
             tmp_tile = Tile()
             if bottom_entity_info:
                 if bottom_entity_info[0] == "ground":

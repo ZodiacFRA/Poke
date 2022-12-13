@@ -109,12 +109,16 @@ class MapWrapper(object):
 
     ########################################
     ### Do not affect the map
-    
+
     def get(self, pos, top_entity_only=True):
-        if top_entity_only:
-            return self.map[pos.y][pos.x].t
-        else:
-            return self.map[pos.y][pos.x].b
+        try:
+            if top_entity_only:
+                return self.map[pos.y][pos.x].t
+            else:
+                return self.map[pos.y][pos.x].b
+        except IndexError:
+            print(f"[-] - Map wrapper: Invalid position requested: {pos}")
+            return None
 
     def get_tile_in_front(self, pos, direction, top_entity_only=True):
         return self.get(pos + Globals.deltas[direction], top_entity_only)
