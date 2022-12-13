@@ -102,10 +102,17 @@ class App(object):
         self.living_entities[player.id] = player
         self.map_wrapper.add_entity(player.pos, player)
         print(f"Player spawned at position {player.pos}")
-        # self.add_pet(player)
+        self.add_pet(player)
 
     def add_pet(self, player, position=None):
-        pet_position = position if position else self.map_wrapper.get_available_position()
+        availableTiles = self.map_wrapper.pathfinder.get_tiles_at_distance_from(
+            player.pos, 10
+        )
+        if availableTiles:
+            tmp_pos = availableTiles[0]
+        else:
+            self.map_wrapper.get_available_position()
+        pet_position = position if position else availableTiles[0]
         pet = Pet(
             id=self.id_manager.create_new_id(),
             pos=pet_position,

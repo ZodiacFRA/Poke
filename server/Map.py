@@ -145,7 +145,7 @@ class MapWrapper(object):
     def go_towards_target_pos(self, entity, target_pos):
         next_move = self.pathfinder.get_next_move(entity, target_pos)
         if next_move is not None:
-            if self.move_entity(self.pos, next_move) == 2:  # If move successful
+            if self.move_entity(entity.pos, next_move) == 2:  # If move successful
                 pass  # TODO: if the move has not been done prevent the pathdfinder
                 # class from popping this move
 

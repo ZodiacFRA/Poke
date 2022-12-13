@@ -2,6 +2,7 @@ import copy
 import collections
 from operator import attrgetter
 
+import Globals
 from HelperClasses import Position
 
 
