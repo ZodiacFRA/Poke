@@ -50,7 +50,7 @@ void draw_image(int x , int y, int num, int xa , int ya) {
     auto crop2 = image(myROI2);
 
 
-    cv::imwrite("data/" + std::to_string(num) + ".png", crop);
+    cv::imwrite("./sprites/" + std::to_string(num) + ".png", crop);
 
     imshow(windowName, crop); // Show our image inside the created window.
     //waitKey(0); // Wait for any keystroke in the windowll
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
         }
     }
 
-    save_map_to_json("map_out.json");
+    save_map_to_json("sprite_map.json");
 
     return 0;
 }

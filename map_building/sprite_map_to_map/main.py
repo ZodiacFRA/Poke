@@ -21,10 +21,10 @@ def is_top(value):
 	return False
 
 
-map_src_file = open("../image_to_map/map_out.json")
+map_src_file = open("../image_to_map/sprite_map.json")
 map_data = json.load(map_src_file)
 
-dic_file = open("dict.json")
+dic_file = open("sprite_idx_to_entity_type.json")
 dic_data = json.load(dic_file)
 
 bot_data = dic_data["bot"]

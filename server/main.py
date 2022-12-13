@@ -20,8 +20,7 @@ class App(object):
         ### Game state
         self.id_manager = IdManager()
         self.living_entities = {}
-        # self.map_wrapper = MapWrapper("../utils/map_gen1_rot.json")
-        self.map_wrapper = MapWrapper("../utils/translateMap/map_loadable.json")
+        self.map_wrapper = MapWrapper("../map_building/sprite_map_to_map/map_loadable.json")
         self.gameplay_events = []
 
         ### Networking
