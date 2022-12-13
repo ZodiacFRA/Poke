@@ -1,6 +1,6 @@
 import time
 import json
-import random
+import copy
 import logging
 from pprint import pprint
 
@@ -68,20 +68,23 @@ class App(object):
     ########################################
     ### Gameplay
     def check_for_player_interaction(self, player):
+        """ Called after any player movement """
         # If another living entity in front of the player
         front_entity = self.map_wrapper.get_tile_in_front(
             player.pos,
             player.direction,
-            True
+            top_entity_only=True
         )
         if type(front_entity) == Player:
-            print("possible player interaction detected")
-            self.gameplay_events.append({
+            self.gameplay_events.append([
+                player.id,
+                {
                 "type": "player_interaction",
-                "player_1": player,
-                "player_2": front_entity,
+                "player_1": player.name,
+                "player_2": front_entity.name,
                 "options": ["talk to", "fight"]
-            })
+                }
+            ])
 
     ########################################
     ### Message processing
@@ -128,8 +131,8 @@ class App(object):
             new_pos = player.pos + Globals.deltas[3]
         else:  # Not a movement nor a dir change
             return
-        self.map_wrapper.move_entity(player.pos, new_pos)
-        self.check_for_player_interaction(player)
+        if self.map_wrapper.move_entity(player.pos, new_pos):
+            self.check_for_player_interaction(player)
 
     ########################################3
     ### Networking
@@ -154,28 +157,45 @@ class App(object):
                     done_clients.append(client["id"])
 
     def send_updates(self):
-        """ Send map and game events deltas """
+        """ Send map and gameplay events deltas """
+        # TODO: This condition may need to change with the addition of self.gameplay_events
         if len(self.map_wrapper.map_events) == 0:
             return
+
         # Prepare the base of the message (which will be sent to every player)
-        delta = {
+        base_msg = {
             "msg_type": "update",
             "turn_idx": Globals.turn_idx,
             "data": [],
             "player_pos": {"y": -1, "x": -1}
         }
         while len(self.map_wrapper.map_events) > 0:
-            delta["data"].append(self.map_wrapper.map_events.pop(0))
-        # Add the position of each player and send him the full message
+            base_msg["data"].append(self.map_wrapper.map_events.pop(0))
+
+        # Create a dict with each players and their specific message
+        clients_messages = {}
         for client in self.server.clients:
             engine_id = self.id_manager.get_engine_id(client["id"])
             if engine_id is None:
+                print(f"[-] - Networking system, detected a connected client not linked to a player")
                 continue
+            msg = copy.copy(base_msg)
+            # Add the position and direction of each player
             player = self.living_entities[engine_id]
-            delta["player_pos"]["y"] = player.pos.y
-            delta["player_pos"]["x"] = player.pos.x
-            delta["player_direction"] = player.direction
-            self.server.send_message(client, json.dumps(delta))
+            msg["player_pos"] = player.pos.get_json_repr()
+            msg["player_direction"] = player.direction
+            clients_messages[engine_id] = [client, msg]
+
+        # Now add the gameplay events, which are specific to some players
+        while len(self.gameplay_events) > 0:
+            ge = self.gameplay_events.pop(0)
+            # ge = [player engine id, {ge data}]
+            # clients_messages[player_engine_id] = [network client object, msg]
+            clients_messages[ge[0]][1]["data"].append(ge[1])
+
+        # Now send the message to each player
+        for engine_id, (client, msg) in clients_messages.items():
+            self.server.send_message(client, json.dumps(msg))
 
     def send_full_map(self):
         map = self.map_wrapper.serialize()
@@ -183,7 +203,6 @@ class App(object):
         self.server.send_message_to_all(json.dumps(message))
 
     def on_client_leave(self, client, server):
-        print("Client left")
         engine_id = self.id_manager.get_engine_id(client["id"])
         # Remove all messages from this player in the message queue
         tmp = []
@@ -193,6 +212,7 @@ class App(object):
         self.incoming_messages = tmp
 
         player = self.living_entities.pop(engine_id)
+        print(f"[ ] - Networking system: Client left ({player})")
         for pet in player.pokedex:
             self.living_entities.pop(pet.id)
             self.map_wrapper.delete_entity(pet.pos)

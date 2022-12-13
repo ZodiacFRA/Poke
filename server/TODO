@@ -1,9 +1,14 @@
 #### TODOs:
-- handle entity movement with pathfinder when movement is not used and direction is changed instead
-to prevent re running the algo
+- decide if the pathfinder system is worth it, original goal was to have a class
+capable of managing all the pathfinding queries to prevent duplication, and have a priority queue
 
+If we go on with this optimization, we'll need to setup a way for the pathdinfing system to know if the map move has been done
+-> in fact maybe the pathfinding system should handle itself the movement through the map wrapper
+-> for now do nothing we'll do it if we really need to optimize the pathdinfing reruns
 
-#### Workarounds:
+- decide how many server ticks should be done before sending the whole map again to every player to avoid network desyncs
+
+#### Workarounds notes:
 - Set a collision idx to specifiy if the pathfinder should ignore an entity or not
 (collide with trees but not with players), needed for the "scan_zone" method to ignore
 living entities. MAYBE entities should be separated from the map, however this would imply

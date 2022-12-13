@@ -60,7 +60,8 @@ class MapWrapper(object):
         return entity
 
     def move_entity(self, from_pos, to_pos, teleported=False, debug=False):
-        """ If direction != -1: must check direction before moving, return flag
+        """
+        If direction != -1: must check direction before moving, return flag
         will change based on [
             impossible move -> False,
             changed direction (no pos change) -> 1,
@@ -68,7 +69,8 @@ class MapWrapper(object):
         ]
         No need to check for collisions before calling this method
         as it will be checked by add_entity()
-        Returns True if move is successful """
+        Returns True if move is successful
+        """
         entity_from = self.map[from_pos.y][from_pos.x].t
         move_direction = from_pos.get_direction(to_pos)
         if move_direction is None:  # Invalid move (not cardinal)
@@ -107,6 +109,7 @@ class MapWrapper(object):
 
     ########################################
     ### Do not affect the map
+    
     def get(self, pos, top_entity_only=True):
         if top_entity_only:
             return self.map[pos.y][pos.x].t
