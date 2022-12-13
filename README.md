@@ -1,4 +1,4 @@
-## Org
+## General
 
 #### image to map: done by seb to cut an image, split it into sprites and deduplicate them
 + output a json with all the sprites indexes
