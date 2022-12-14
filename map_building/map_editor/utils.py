@@ -22,3 +22,16 @@ def load_sprite(filepath, resize_factor=1):
             res,
             (int(size[0]*resize_factor), int(size[1]*resize_factor))
         )
+
+def rescale_sprites(sprites, resize_factor):
+    res = {}
+    for sprite_idx, sprite in sprites.items():
+        res[sprite_idx] = rescale_sprite(sprite, resize_factor)
+    return res
+
+def rescale_sprite(sprite, resize_factor):
+        size = sprite.get_size()
+        return pygame.transform.scale(
+            sprite,
+            (int(size[0]*resize_factor), int(size[1]*resize_factor))
+        )
