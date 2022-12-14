@@ -1,4 +1,5 @@
 import os
+import json
 
 import pygame
 
@@ -35,3 +36,32 @@ def rescale_sprite(sprite, resize_factor):
             sprite,
             (int(size[0]*resize_factor), int(size[1]*resize_factor))
         )
+
+def init_map_layout(map_size):
+    res = []
+    for y in range(map_size.y):
+        line = []
+        for x in range(map_size.x):
+            line.append(None)
+        res.append(line)
+    return res
+
+def serialize(top_layer, bottom_layer, map_size):
+    res = {"map": {"top": init_map_layout(map_size), "bottom": init_map_layout(map_size)}}
+    for y_idx in range(map_size.y):
+        for x_idx in range(map_size.x):
+            top_entity = []
+            top_sprite_idx = top_layer[y_idx][x_idx]
+            if top_sprite_idx is not None:
+                top_entity = ["ground", top_sprite_idx]
+            res["map"]["top"][y_idx][x_idx] = top_entity
+
+            bottom_entity = []
+            bottom_sprite_idx = bottom_layer[y_idx][x_idx]
+            if bottom_sprite_idx is not None:
+                bottom_entity = ["ground", bottom_sprite_idx]
+            res["map"]["bottom"][y_idx][x_idx] = bottom_entity
+
+    with open("./map.json", 'w') as f:
+        f.write(json.dumps(res))
+    print("[+] - Serializing done, wrote to ./map.json")

@@ -19,11 +19,12 @@ class App(object):
         pygame.init()
         pygame.display.set_caption('Level editor')
         self.d = pygame.display.set_mode((self.window_size.x, self.window_size.y))
-        ####
+        #### "in_use" members are needed as we want to rescale from the original sprites each time
         self.sprites = load_sprites("../../client/sprites/")
         self.in_use_sprites = self.sprites
         self.background_image = load_sprite(
-            "../ressources/wholemap.png",
+            "../ressources/bourgpalette_4_4.png",
+            # "../ressources/wholemap.png",
             resize_factor=2
         )
         self.in_use_background_image = self.background_image
@@ -31,16 +32,8 @@ class App(object):
         ####
         reference_map_size = self.background_image.get_size()
         self.map_size = Position(reference_map_size[1], reference_map_size[0]) // self.tile_size
-        self.top_layer = []
-        self.bottom_layer = []
-        for y in range(self.map_size.y):
-            tmp_top_line = []
-            tmp_bottom_line = []
-            for x in range(self.map_size.x):
-                tmp_top_line.append(None)
-                tmp_bottom_line.append(None)
-            self.top_layer.append(tmp_top_line)
-            self.bottom_layer.append(tmp_bottom_line)
+        self.top_layer = init_map_layout(self.map_size)
+        self.bottom_layer = init_map_layout(self.map_size)
         ####
         self.moving_zone_pixels = self.window_size // 10
         self.top_left_tile = Position(0, 0)
@@ -76,8 +69,8 @@ class App(object):
             self.zoom_in()
         if keys[K_o] and self.scale_ratio > 1 / 8:
             self.zoom_out()
-        if keys[K_RETURN]:
-            pass
+        if keys[K_p]:
+            serialize(self.top_layer, self.bottom_layer, self.map_size)
         if buttons[0]:
             if self.is_top_layer:
                 self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
@@ -108,6 +101,8 @@ class App(object):
 
     def display_entity(self, tile_screen_pos):
         map_pos = tile_screen_pos + self.top_left_tile
+        if not self.is_valid_pos_on_map(map_pos):
+            return
         top_entity = self.top_layer[map_pos.y][map_pos.x]
         bottom_entity = self.bottom_layer[map_pos.y][map_pos.x]
         tile_pixel_pos = tile_screen_pos * self.tile_size
@@ -163,6 +158,12 @@ class App(object):
         y_pos = 0 - (self.top_left_tile.y * self.tile_size)
         # INVERT COORDS FOR PYGAME
         self.d.blit(self.in_use_background_image, (x_pos, y_pos))
+
+    def is_valid_pos_on_map(self, pos):
+        if pos.x < 0 or pos.y < 0 or pos.x >= self.map_size.x or pos.y >= self.map_size.y:
+            return False
+        else:
+            return True
 
 
 if __name__ == '__main__':
