@@ -2,7 +2,7 @@ const SCREEN_WIDTH_TILES = 15;
 const SCREEN_HEIGHT_TILES = 9;
 const PLAYER_ID = "UnDesSix";
 const SCALE = 4;
-const TILE_SIZE = 16 * SCALE;
+const TILE_SIZE = 32 * SCALE;
 const FPS = 30;
 
 const app = {
@@ -17,7 +17,7 @@ const app = {
     direction: -1,
   },
 
-  init: function () {
+  init: function() {
     this.app = new PIXI.Application({
       width: SCREEN_WIDTH_TILES * TILE_SIZE,
       height: SCREEN_HEIGHT_TILES * TILE_SIZE,
@@ -34,7 +34,7 @@ const app = {
     });
   },
 
-  displayMap: function () {
+  displayMap: function() {
     bottomContainer = new PIXI.Container();
     topContainer = new PIXI.Container();
     // playerContainer = new PIXI.Container();
