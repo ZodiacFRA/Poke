@@ -18,8 +18,10 @@ Convert the sprites indexes json into one usable by the map loader, where the en
 ## Server
 
 #### TODOs:
-- handle entity movement with pathfinder when movement is not used and direction is changed instead
+- Handle entity movement with pathfinder when movement is not used and direction is changed instead
 to prevent re running the algo
+
+- Fix dijkstra problem, if player is stuck between 3 walls and pikachu, dijkstra won't be able to find a path from the player, as pikachu is colliding -> should be ok with the collision_treshold but does not work -> to be patched
 
 
 #### Workarounds:
