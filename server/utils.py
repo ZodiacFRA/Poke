@@ -29,7 +29,7 @@ def get_map_from_json_file(map_filepath):
             if top_entity_info:
                 # TODO: Remove the ground assignment, the map json should
                 # have a ground beneath walls on its own
-                tmp_tile.b = Ground(Position(y_idx, x_idx), -1)
+                tmp_tile.b = Ground(Position(y_idx, x_idx), bottom_entity_info[1])
                 if top_entity_info[0] == "wall":
                     tmp_tile.t = Wall(Position(y_idx, x_idx), top_entity_info[1])
                 elif top_entity_info[0] == "door":

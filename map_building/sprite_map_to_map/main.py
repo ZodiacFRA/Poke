@@ -53,7 +53,7 @@ for row in map_data["map"]:
 			tmp_row_bot.append(obj_bot)
 			tmp_row_top.append(obj_top)
 		elif is_top(sprite_idx):
-			obj_bot = ("ground", 2000)
+			obj_bot = ("ground", 2001)
 			obj_top = ("wall", sprite_idx)
 			tmp_row_bot.append(obj_bot)
 			tmp_row_top.append(obj_top)
@@ -69,12 +69,9 @@ top_final = np.rot90(np.array(top_final, dtype=object))
 bot_final = np.rot90(np.array(bot_final, dtype=object))
 top_final = np.flip(top_final, 0)
 bot_final = np.flip(bot_final, 0)
-# print(len(bot_final))
-# print(len(top_final))
 
 map_content = {"top": top_final.tolist(), "bottom": bot_final.tolist()}
 obj = {"map": map_content}
 
 with open("map_loadable.json", 'w') as f:
 	f.write(json.dumps(obj))
-# print(json.dumps(obj, indent=4))

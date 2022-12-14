@@ -92,7 +92,7 @@ class App(object):
     def add_new_player(self, client, msg):
         self.send_full_map()
         player_pos = self.map_wrapper.get_available_position()
-        player_pos = Position(258, 75)
+        player_pos = Position(204, 65)
         player = Player(
             self.id_manager.create_new_id(client["id"]),
             player_pos,
