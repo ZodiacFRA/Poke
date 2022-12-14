@@ -10,6 +10,8 @@ from utils import *
 
 
 class App(object):
+    """
+    """
     def __init__(self, background_image_path, sprites_folder_path):
         self.visible_tiles = Position(21, 21)
         self.tile_size = 32
@@ -84,13 +86,16 @@ class App(object):
             self.draw_mouse_highlight(mouse_pos)
             # Refresh mouse_map_position
         # Zoom In / Out
-        if keys[K_i] and self.scale_ratio < 1:
+        if keys[K_r] and self.scale_ratio < 1:
             self.zoom_in()
-        if keys[K_o] and self.scale_ratio > 1 / 8:
+        if keys[K_t] and self.scale_ratio > 1 / 8:
             self.zoom_out()
         # Serialize
-        if keys[K_p]:
+        if keys[K_v]:
             serialize(self.top_layer, self.bottom_layer, self.map_size)
+        # Layer selection
+        if keys[K_a]:
+            self.is_top_layer = not self.is_top_layer
         # Apply sprite
         if buttons[0]:
             if self.is_top_layer:
@@ -140,7 +145,8 @@ class App(object):
 
     def draw_mouse_highlight(self, mouse_pos):
         tile_on_screen = mouse_pos // self.tile_size
-        pygame.draw.rect(self.d, (255,0,0), pygame.Rect(
+        color = (255, 0, 0) if self.is_top_layer else (0, 255, 0)
+        pygame.draw.rect(self.d, color, pygame.Rect(
             tile_on_screen.x * self.tile_size - 1,
             tile_on_screen.y * self.tile_size - 1,
             self.tile_size + 2,
@@ -203,7 +209,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
                     prog = 'Poke Map / Level editor',
                     description = 'Poke Map / Level editor',
-                    epilog = "press:\n'i' to zoom\n'o' to dezoom\n'p' to serialize the result to a json loadable by the game")
+                    epilog = "press:\n'R' to zoom\n'T' to dezoom\n'V' to serialize the result to a json loadable by the game\n'A' to change edited layer")
     parser.add_argument('-b', '--background_image', required=False, type=str, default="../ressources/wholemap.png")
     parser.add_argument('-s', '--sprites_folder_path', required=False, type=str, default="../../client/sprites/")
     args = parser.parse_args()
