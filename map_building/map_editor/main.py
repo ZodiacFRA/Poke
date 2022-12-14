@@ -1,4 +1,6 @@
+import sys
 import time
+import argparse
 
 import pygame
 from pygame.locals import *
@@ -8,7 +10,7 @@ from utils import *
 
 
 class App(object):
-    def __init__(self):
+    def __init__(self, background_image_path, sprites_folder_path):
         self.visible_tiles = Position(21, 21)
         self.tile_size = 32
         self.window_size = Position(
@@ -20,11 +22,10 @@ class App(object):
         pygame.display.set_caption('Level editor')
         self.d = pygame.display.set_mode((self.window_size.x, self.window_size.y))
         #### "in_use" members are needed as we want to rescale from the original sprites each time
-        self.sprites = load_sprites("../../client/sprites/")
+        self.sprites = load_sprites(sprites_folder_path)
         self.in_use_sprites = self.sprites
         self.background_image = load_sprite(
-            "../ressources/bourgpalette_4_4.png",
-            # "../ressources/wholemap.png",
+            background_image_path,
             resize_factor=2
         )
         self.in_use_background_image = self.background_image
@@ -144,14 +145,8 @@ class App(object):
         else:
             time.sleep(to_sleep)
         self.start_time = time.time()
-        self.d.fill("#ff0000")
+        self.d.fill("#000000")
         return 1
-
-    def drawGrid(self):
-        for y in range(0, self.window_size.x, self.tile_size):
-            for x in range(0, self.window_size.y, self.tile_size):
-                rect = pygame.Rect(x, y, self.tile_size, self.tile_size)
-                pygame.draw.rect(self.d, "#000000", rect, 1)
 
     def display_background_image(self):
         x_pos = 0 - (self.top_left_tile.x * self.tile_size)
@@ -165,7 +160,20 @@ class App(object):
         else:
             return True
 
+    def drawGrid(self):
+        for y in range(0, self.window_size.x, self.tile_size):
+            for x in range(0, self.window_size.y, self.tile_size):
+                rect = pygame.Rect(x, y, self.tile_size, self.tile_size)
+                pygame.draw.rect(self.d, "#000000", rect, 1)
+
 
 if __name__ == '__main__':
-    app = App()
+    parser = argparse.ArgumentParser(
+                    prog = 'Poke Map / Level editor',
+                    description = 'Poke Map / Level editor',
+                    epilog = "press:\n'i' to zoom\n'o' to dezoom\n'p' to serialize the result to a json loadable by the game")
+    parser.add_argument('-b', '--background_image', required=False, type=str, default="../ressources/wholemap.png")
+    parser.add_argument('-s', '--sprites_folder_path', required=False, type=str, default="../../client/sprites/")
+    args = parser.parse_args()
+    app = App(args.background_image, args.sprites_folder_path)
     app.launch()
