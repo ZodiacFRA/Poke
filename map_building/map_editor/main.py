@@ -11,8 +11,6 @@ class App(object):
     def __init__(self):
         ####
         self.visible_tiles = Position(21, 21)
-        self.visible_tiles.x = 21
-        self.visible_tiles.y = 21
         self.tile_size = 32
         self.window_size = Position(
             self.tile_size * self.visible_tiles.y,
@@ -28,8 +26,18 @@ class App(object):
             "../ressources/wholemap.png",
             resize_factor=2
         )
-        self.map = []  # TODO: INIT THE MAP
-        # self.map_size = Position()
+        reference_map_size = self.background_image.get_size()
+        self.map_size = Position(reference_map_size[1], reference_map_size[0]) // self.tile_size
+        self.top_layer = []
+        self.bottom_layer = []
+        for y in range(self.map_size.y):
+            tmp_top_line = []
+            tmp_bottom_line = []
+            for x in range(self.map_size.x):
+                tmp_top_line.append(None)
+                tmp_bottom_line.append(None)
+            self.top_layer.append(tmp_top_line)
+            self.bottom_layer.append(tmp_bottom_line)
         ####
         self.moving_zone_pixels = self.window_size // 10
         self.top_left_tile = Position(0, 0)
@@ -37,12 +45,16 @@ class App(object):
         ####
         self.delta_time = 1 / 15
         self.start_time = time.time()
+        ####
+        self.is_top_layer = True
+        self.selected_sprite_idx = 0
 
     def launch(self):
         while self.handle_loop():
             self.display_background_image()
             self.drawGrid()
             self.handle_input()
+            self.draw_map()
 
     def handle_loop(self):
         pygame.display.update()
@@ -58,19 +70,8 @@ class App(object):
         else:
             time.sleep(to_sleep)
         self.start_time = time.time()
-        self.d.fill("#ffffff")
+        self.d.fill("#ff0000")
         return 1
-
-    # def draw_map(self, map, game_state):
-    #     for y_idx in range(self.map_tiles_nbr.y):
-    #         for x_idx in range(self.map_tiles_nbr.x):
-    #             screen_pos = Position(y=y_idx, x=x_idx)
-    #             map_pos = self.screen_pos_to_map_pos(screen_pos)
-    #             line = map.get(map_pos.y, None)
-    #             if not line: continue
-    #             tile = line.get(map_pos.x, None)
-    #             if not tile: continue
-    #             self.display_entity(*tile, screen_pos)
 
     def drawGrid(self):
         for y in range(0, self.window_size.x, self.tile_size):
@@ -94,6 +95,8 @@ class App(object):
             self.move_screen_with_mouse(mouse_pos)
             # Draw tile highlight on cursor pos
             self.draw_mouse_highlight(mouse_pos)
+            # Refresh mouse_map_position
+            self.mouse_map_position = (mouse_pos // self.tile_size) + self.top_left_tile
         # Zoom In / Out
         if keys[K_PLUS]:  # Zoom in
             self.visible_tiles.x = ((self.visible_tiles.x - 1) / 2) + 1
@@ -103,20 +106,32 @@ class App(object):
             self.visible_tiles.x = ((self.visible_tiles.x - 1) * 2) + 1
             self.visible_tiles.y = ((self.visible_tiles.y - 1) * 2) + 1
             self.tile_size = int(self.tile_size / 2)
-        # Movement on map
-        # if keys[K_UP]:
-        #     self.top_left_tile.y -= 1
-        # elif keys[K_DOWN]:
-        #     self.top_left_tile.y += 1
-        # if keys[K_RIGHT]:
-        #     self.top_left_tile.x += 1
-        # elif keys[K_LEFT]:
-        #     self.top_left_tile.x -= 1
-        #
         if keys[K_RETURN]:
             pass
         if buttons[0]:
-            pass
+            if self.is_top_layer:
+                print(f"top adding {self.selected_sprite_idx} at y {self.mouse_map_position.y}, x {self.mouse_map_position.x}")
+                self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+            else:
+                print(f"bottom adding {self.selected_sprite_idx} at y {self.mouse_map_position.y}, x {self.mouse_map_position.x}")
+                self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+
+
+    def draw_map(self):
+        for y in range(self.visible_tiles.y):
+            for x in range(self.visible_tiles.x):
+                pos = Position(y, x)
+                self.display_entity(pos)
+
+    def display_entity(self, tile_screen_pos):
+        map_pos = tile_screen_pos + self.top_left_tile
+        top_entity = self.top_layer[map_pos.y][map_pos.x]
+        bottom_entity = self.bottom_layer[map_pos.y][map_pos.x]
+        tile_pixel_pos = tile_screen_pos * self.tile_size
+        if bottom_entity:
+            self.d.blit(self.sprites[bottom_entity], (tile_pixel_pos.x, tile_pixel_pos.y))
+        if top_entity:
+            self.d.blit(self.sprites[top_entity], (tile_pixel_pos.x, tile_pixel_pos.y))
 
     def draw_mouse_highlight(self, mouse_pos):
         tile_on_screen = mouse_pos // self.tile_size
@@ -126,8 +141,6 @@ class App(object):
             self.tile_size + 2,
             self.tile_size + 2
         ), 2)
-        # print('drawn at ', )
-        # tile_on_map =
 
     def move_screen_with_mouse(self, mouse_pos):
         if mouse_pos.y < self.moving_zone_pixels.y:

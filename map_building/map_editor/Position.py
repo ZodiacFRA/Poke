@@ -7,6 +7,9 @@ class Position(object):
     def __floordiv__(self, other):
         return Position(self.y // other, self.x // other)
 
+    def __mul__(self, other):
+        return Position(self.y * other, self.x * other)
+
     def __add__(self, other):
         return Position(self.y + other.y, self.x + other.x)
 
