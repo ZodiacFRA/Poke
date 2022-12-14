@@ -6,6 +6,9 @@ const TILE_SIZE = 32 * SCALE;
 const FPS = 30;
 
 const app = {
+  renderer: null,
+  state: null,
+
   pixiApp: null,
   map: null,
   textures: null,
@@ -57,18 +60,26 @@ const app = {
   initContainers: function () {
     this.containers.bottom = new PIXI.Container();
     this.containers.top = new PIXI.Container();
-    this.pixiApp.stage.addChild(this.containers.bottom);
-    this.pixiApp.stage.addChild(this.containers.top);
+    this.stage.addChild(this.containers.bottom);
+    this.stage.addChild(this.containers.top);
   },
 
   initPixiApp: function () {
-    this.pixiApp = new PIXI.Application({
+    this.renderer = new PIXI.Renderer({
       width: SCREEN_WIDTH_TILES * TILE_SIZE,
       height: SCREEN_HEIGHT_TILES * TILE_SIZE,
-      background: "#000000",
+      backgroundColor: 0x1099bf,
     });
+    document.body.appendChild(this.renderer.view);
+    this.stage = new PIXI.Container();
+    this.ticker = new PIXI.Ticker();
+
+    this.ticker.add(() => {
+      this.renderer.render(this.stage);
+    }, PIXI.UPDATE_PRIORITY.LOW);
+    this.ticker.start();
+
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-    document.body.appendChild(this.pixiApp.view);
     imgSrc.buildPathArray();
   },
 
@@ -78,7 +89,6 @@ const app = {
     const texturesPromise = PIXI.Assets.load(imgSrc.name);
     texturesPromise.then((textures) => {
       this.textures = textures;
-      console.log(imgSrc.name[200]);
       server.listen();
     });
   },
