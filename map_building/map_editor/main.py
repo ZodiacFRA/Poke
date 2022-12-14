@@ -17,19 +17,21 @@ class App(object):
             self.tile_size * self.visible_tiles.y,
             self.tile_size * self.visible_tiles.x
         )
+        self.full_window_size = self.window_size + Position(0, 200)
         ####
         pygame.init()
         pygame.display.set_caption('Level editor')
-        self.d = pygame.display.set_mode((self.window_size.x, self.window_size.y))
-        #### "in_use" members are needed as we want to rescale from the original sprites each time
+        self.d = pygame.display.set_mode((self.full_window_size.x, self.full_window_size.y))
+        ####
+        self.scale_ratio = 1
         self.sprites = load_sprites(sprites_folder_path)
-        self.in_use_sprites = self.sprites
         self.background_image = load_sprite(
             background_image_path,
             resize_factor=2
         )
+        # "in_use" members are needed as we want to rescale from the original sprites each time
+        self.in_use_sprites = self.sprites
         self.in_use_background_image = self.background_image
-        self.scale_ratio = 1
         ####
         reference_map_size = self.background_image.get_size()
         self.map_size = Position(reference_map_size[1], reference_map_size[0]) // self.tile_size
@@ -48,35 +50,59 @@ class App(object):
 
     def launch(self):
         while self.handle_loop():
+            # Map related draws
             self.display_background_image()
             # self.drawGrid()
             self.draw_map()
             self.handle_input()
+            # UI related draws
+            self.draw_ui()
+
+    def draw_ui(self):
+        # Right UI
+        pygame.draw.rect(
+            self.d, (255, 255, 255),
+            pygame.Rect(self.window_size.x, 0, self.full_window_size.x - self.window_size.x, self.window_size.y)
+        )
+        # Separation
+        pygame.draw.rect(
+            self.d, (0, 0, 0),
+            pygame.Rect(self.window_size.x, 0, 4, self.window_size.y)
+        )
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
         buttons = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
         mouse_pos = Position(mouse_pos[1], mouse_pos[0])
-        if pygame.mouse.get_focused():
+        # Check if mouse is hovering on the map
+        if self.is_mouse_focused_on_map(mouse_pos):
+            self.mouse_map_position = (mouse_pos // self.tile_size) + self.top_left_tile
             # Mouse is in the border of the screen, move the whole screen
             self.move_screen_with_mouse(mouse_pos)
             # Draw tile highlight on cursor pos
             self.draw_mouse_highlight(mouse_pos)
             # Refresh mouse_map_position
-            self.mouse_map_position = (mouse_pos // self.tile_size) + self.top_left_tile
         # Zoom In / Out
         if keys[K_i] and self.scale_ratio < 1:
             self.zoom_in()
         if keys[K_o] and self.scale_ratio > 1 / 8:
             self.zoom_out()
+        # Serialize
         if keys[K_p]:
             serialize(self.top_layer, self.bottom_layer, self.map_size)
+        # Apply sprite
         if buttons[0]:
             if self.is_top_layer:
                 self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
             else:
                 self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+        # Delete sprite
+        if buttons[2]:
+            if self.is_top_layer:
+                self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
+            else:
+                self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
 
     def zoom_in(self):
         self.visible_tiles.x = int(((self.visible_tiles.x - 1) / 2) + 1)
@@ -166,6 +192,12 @@ class App(object):
                 rect = pygame.Rect(x, y, self.tile_size, self.tile_size)
                 pygame.draw.rect(self.d, "#000000", rect, 1)
 
+    def is_mouse_focused_on_map(self, mouse_pos):
+        if not pygame.mouse.get_focused():
+            return False
+        if mouse_pos.x > self.window_size.x:
+            return False
+        return True
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
