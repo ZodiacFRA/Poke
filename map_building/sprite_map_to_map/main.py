@@ -21,7 +21,7 @@ def is_top(value):
 	return False
 
 
-map_src_file = open("../image_to_map/sprite_map.json")
+map_src_file = open("../image_to_sprite_map/sprite_map.json")
 map_data = json.load(map_src_file)
 
 dic_file = open("sprite_idx_to_entity_type.json")
@@ -42,20 +42,21 @@ for row in map_data["map"]:
 	tmp_row_top = []
 	for sprite_idx in row:
 		if is_bot(sprite_idx) and is_top(sprite_idx):
-				obj_top = ("ground", sprite_idx)
-				obj_bot = ("wall", sprite_idx)
-				tmp_row_bot.append(obj_bot)
-				tmp_row_top.append(obj_top)
+			print('I am weird')
+			obj_top = ("ground", sprite_idx)
+			obj_bot = ("wall", sprite_idx)
+			tmp_row_bot.append(obj_bot)
+			tmp_row_top.append(obj_top)
 		elif is_bot(sprite_idx):
 			obj_bot = ("ground", sprite_idx)
 			obj_top = ()
 			tmp_row_bot.append(obj_bot)
 			tmp_row_top.append(obj_top)
 		elif is_top(sprite_idx):
-				obj_bot = ()
-				obj_top = ("wall", sprite_idx)
-				tmp_row_bot.append(obj_bot)
-				tmp_row_top.append(obj_top)
+			obj_bot = ("ground", 2000)
+			obj_top = ("wall", sprite_idx)
+			tmp_row_bot.append(obj_bot)
+			tmp_row_top.append(obj_top)
 		else:
 			obj = ()
 			tmp_row_bot.append(obj)
