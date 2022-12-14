@@ -6,9 +6,13 @@ const TILE_SIZE = 32 * SCALE;
 const FPS = 30;
 
 const app = {
-  app: null,
+  pixiApp: null,
   map: null,
   textures: null,
+  containers: {
+    bottom: null,
+    top: null,
+  },
   player: {
     pos: {
       x: -1,
@@ -17,15 +21,19 @@ const app = {
     direction: -1,
   },
 
-  init: function() {
-    this.app = new PIXI.Application({
+  init: function () {
+    this.pixiApp = new PIXI.Application({
       width: SCREEN_WIDTH_TILES * TILE_SIZE,
       height: SCREEN_HEIGHT_TILES * TILE_SIZE,
       background: "#000000",
     });
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-    document.body.appendChild(this.app.view);
+    document.body.appendChild(this.pixiApp.view);
     imgSrc.buildPathArray();
+    this.containers.bottom = new PIXI.Container();
+    this.containers.top = new PIXI.Container();
+    this.pixiApp.stage.addChild(this.containers.bottom);
+    this.pixiApp.stage.addChild(this.containers.top);
     const texturesPromise = PIXI.Assets.load(imgSrc.name);
     texturesPromise.then((textures) => {
       this.textures = textures;
@@ -34,13 +42,9 @@ const app = {
     });
   },
 
-  displayMap: function() {
-    bottomContainer = new PIXI.Container();
-    topContainer = new PIXI.Container();
-    // playerContainer = new PIXI.Container();
-    this.app.stage.removeChildren();
-    this.app.stage.addChild(bottomContainer);
-    this.app.stage.addChild(topContainer);
+  displayMap: function () {
+    this.containers.bottom.removeChildren();
+    this.containers.top.removeChildren();
     const topLeftTileIdx = {
       x: Math.max(this.player.pos.x - Math.trunc(SCREEN_WIDTH_TILES / 2), 0),
       y: Math.max(this.player.pos.y - Math.trunc(SCREEN_HEIGHT_TILES / 2), 0),
@@ -56,19 +60,21 @@ const app = {
           sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0, 0);
           sprite.x = x * TILE_SIZE;
           sprite.y = y * TILE_SIZE;
-          bottomContainer.addChild(sprite);
+          // this.containers.bottom.removeChild();
+          this.containers.bottom.addChild(sprite);
         }
         var top_idx = this.map.top[topLeftTileIdx.y + y][topLeftTileIdx.x + x];
         if (top_idx >= 0) {
           let offsetPlayer = 0;
           if (top_idx > 999 && top_idx < 1004) {
-            offsetPlayer = 8 * SCALE;
+            offsetPlayer = 16 * SCALE;
           }
           const sprite = new PIXI.Sprite(this.textures[top_idx]);
           sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0, 0);
           sprite.x = x * TILE_SIZE;
           sprite.y = y * TILE_SIZE - offsetPlayer;
-          topContainer.addChild(sprite);
+          // this.containers.top.removeChild();
+          this.containers.top.addChild(sprite);
         }
       }
     }
