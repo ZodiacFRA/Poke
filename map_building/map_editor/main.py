@@ -255,7 +255,7 @@ class App(object):
         self.d.blit(self.in_use_backdrop, (x_pos, y_pos))
 
     def is_valid_pos_on_map(self, pos):
-        if pos.x < 0 or pos.y < 0 or pos.x > self.map_size.x or pos.y > self.map_size.y:
+        if pos.x < 0 or pos.y < 0 or pos.x >= self.map_size.x or pos.y >= self.map_size.y:
             return False
         else:
             return True
