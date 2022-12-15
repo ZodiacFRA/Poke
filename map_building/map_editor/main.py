@@ -13,8 +13,8 @@ from utils import *
 class App(object):
     def __init__(self, backdrop_path, sprites_folder_path, json_map_path):
         # Members needed for sprite scaling
-        self.visible_tiles = Position(21, 21)
-        self.base_tile_size = 32
+        self.visible_tiles = Position(31, 31)  # Needs to be odd
+        self.base_tile_size = 32  # Needs to be even
         self.tile_size = self.base_tile_size
         self.scale_ratio = 1
         self.window_size = Position(
@@ -79,7 +79,7 @@ class App(object):
     def launch(self):
         while self.handle_loop():
             if self.display_backdrop_flag == 1:
-                self.in_use_backdrop.set_alpha(0)
+                # self.in_use_backdrop.set_alpha(0)
                 self.display_backdrop()
             self.draw_map_panel()
             if self.display_backdrop_flag == 2:
