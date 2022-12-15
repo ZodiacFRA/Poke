@@ -48,7 +48,7 @@ def load_sprites(sprites_dir):
     return res
 
 def load_sprite(filepath, resize_factor=1):
-    res = pygame.image.load(filepath).convert_alpha()
+    res = pygame.image.load(filepath).convert()
     if resize_factor == 1:
         return res
     else:

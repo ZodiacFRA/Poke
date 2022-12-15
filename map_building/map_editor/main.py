@@ -66,19 +66,24 @@ class App(object):
         self.toggle_delta_time = 0.1
         self.edit_top_layer = True
         self.edit_top_layer_time = time.time()
-        self.display_backdrop_flag = True
+        self.display_backdrop_flag = 0
         self.display_backdrop_flag_time = time.time()
         self.selected_sprite_idx = 0
 
     def launch(self):
         while self.handle_loop():
-            if self.display_backdrop_flag:
+            if self.display_backdrop_flag == 1:
+                self.in_use_backdrop.set_alpha(0)
                 self.display_backdrop()
             self.draw_map_panel()
+            if self.display_backdrop_flag == 2:
+                self.in_use_backdrop.set_alpha(150)
+                self.display_backdrop()
             self.draw_sprite_sheet_panel()
             self.handle_key_inputs()
             self.handle_mouse_buttons_inputs()
             self.handle_mouse_movements()
+
 
     def draw_sprite_sheet_panel(self):
         # Draw the white background
@@ -120,9 +125,11 @@ class App(object):
                 print(f"[ ] - Editing top layer: {self.edit_top_layer}")
         if keys[K_c]:  # Toggle backdrop visibility
             if time.time() - self.display_backdrop_flag_time > self.toggle_delta_time:
-                self.display_backdrop_flag = not self.display_backdrop_flag
+                self.display_backdrop_flag += 1
+                self.display_backdrop_flag %= 3
                 self.display_backdrop_flag_time = time.time()
-                print(f"[ ] - Backdrop visible: {self.display_backdrop_flag}")
+                tmp = ["off", "on", "on top"]
+                print(f"[ ] - Backdrop is {tmp[self.display_backdrop_flag]}")
 
     def handle_mouse_buttons_inputs(self):
         buttons = pygame.mouse.get_pressed()
@@ -232,7 +239,7 @@ class App(object):
         if mouse_pos.x < self.moving_zone_pixels.x:
             self.top_left_tile.x -= int(1 / self.scale_ratio)
 
-    def handle_loop(self):
+    def handle_loop(self, debug=False):
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -242,7 +249,8 @@ class App(object):
         # sleep handling
         to_sleep = self.delta_time - (time.time() - self.start_time)
         if to_sleep <= 0:
-            print(f"[-] - App: Lagging behind: {to_sleep}")
+            if debug:
+                print(f"[-] - App: Lagging behind: {to_sleep}")
         else:
             time.sleep(to_sleep)
         self.start_time = time.time()
