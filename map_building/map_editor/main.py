@@ -49,11 +49,12 @@ class App(object):
                 json_map_path
             )
         else:
-            self.top_layer, self.bottom_layer, self.map_size = init_map_layout(
-                self.backdrop_map_size
-            )
+            self.top_layer = init_map_layout(self.backdrop_map_size)
+            self.bottom_layer = init_map_layout(self.backdrop_map_size)
+            self.map_size = self.backdrop_map_size
+
         ####
-        self.moving_zone_pixels = self.window_size // 6
+        self.moving_zone_pixels = self.window_size // 5
         # Position the map in the center
         # self.top_left_tile = self.map_size // 2 + self.visible_tiles // 2
         self.top_left_tile = Position(0, 0)

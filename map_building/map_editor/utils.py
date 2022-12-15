@@ -71,17 +71,13 @@ def rescale_sprite(sprite, resize_factor):
         )
 
 def init_map_layout(map_size):
-    top = []
-    bottom = []
+    layer = []
     for y in range(map_size.y):
-        top_line = []
-        bottom_line = []
+        line = []
         for x in range(map_size.x):
-            top_line.append(None)
-            bottom_line.append(None)
-        top.append(top_line)
-        bottom.append(bottom_line)
-    return top, bottom
+            line.append(None)
+        layer.append(line)
+    return layer
 
 def serialize(top_layer, bottom_layer, map_size):
     res = {"map": {"top": init_map_layout(map_size), "bottom": init_map_layout(map_size)}}
