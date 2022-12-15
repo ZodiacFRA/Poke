@@ -1,6 +1,7 @@
 import sys
 import time
 import argparse
+import random
 
 import pygame
 from pygame.locals import *
@@ -10,7 +11,7 @@ from utils import *
 
 
 class App(object):
-    def __init__(self, backdrop_path, sprites_folder_path):
+    def __init__(self, backdrop_path, sprites_folder_path, json_map_path):
         # Members needed for sprite scaling
         self.visible_tiles = Position(21, 21)
         self.base_tile_size = 32
@@ -41,10 +42,14 @@ class App(object):
         ####
         reference_map_size = self.backdrop.get_size()
         self.map_size = Position(reference_map_size[1], reference_map_size[0]) // self.tile_size
-        self.top_layer = init_map_layout(self.map_size)
-        self.bottom_layer = init_map_layout(self.map_size)
+        if json_map_path:
+            self.top_layer, self.bottom_layer = get_layers_from_json_file(json_map_path)
+        else:
+            self.top_layer, self.bottom_layer = init_map_layout(self.map_size)
         ####
         self.moving_zone_pixels = self.window_size // 6
+        # Position the map in the center
+        # self.top_left_tile = self.map_size // 2 + self.visible_tiles // 2
         self.top_left_tile = Position(0, 0)
         self.mouse_map_position = Position(-1, -1)
         ####
@@ -83,8 +88,8 @@ class App(object):
         pygame.draw.rect(self.d, (0, 255, 0), pygame.Rect(
             highlight_pos.x,
             highlight_pos.y,
-            self.tile_size,
-            self.tile_size
+            self.base_tile_size,
+            self.base_tile_size
         ), 2)
 
     def handle_key_inputs(self):
@@ -167,7 +172,7 @@ class App(object):
                 # Display the entity
                 map_pos = tile_screen_pos + self.top_left_tile
                 if not self.is_valid_pos_on_map(map_pos):
-                    return
+                    continue
                 top_entity = self.top_layer[map_pos.y][map_pos.x]
                 bottom_entity = self.bottom_layer[map_pos.y][map_pos.x]
                 tile_pixel_pos = tile_screen_pos * self.tile_size
@@ -272,7 +277,8 @@ if __name__ == '__main__':
                     description = 'Poke Map / Level editor',
                     epilog = "press:\n'R' to zoom\n'T' to dezoom\n'V' to serialize the result to a json loadable by the game\n'A' to change edited layer")
     parser.add_argument('-b', '--backdrop', required=False, type=str, default="../ressources/wholemap.png")
+    parser.add_argument('-m', '--json_map_path', required=False, type=str, default="")
     parser.add_argument('-s', '--sprites_folder_path', required=False, type=str, default="../../client/sprites/")
     args = parser.parse_args()
-    app = App(args.backdrop, args.sprites_folder_path)
+    app = App(args.backdrop, args.sprites_folder_path, args.json_map_path)
     app.launch()
