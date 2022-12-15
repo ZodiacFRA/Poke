@@ -65,3 +65,8 @@ def serialize(top_layer, bottom_layer, map_size):
     with open("./map.json", 'w') as f:
         f.write(json.dumps(res))
     print("[+] - Serializing done, wrote to ./map.json")
+
+
+def get_int_idx(elem):
+    elem = int(elem)
+    return elem

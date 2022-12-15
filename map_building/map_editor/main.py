@@ -10,16 +10,16 @@ from utils import *
 
 
 class App(object):
-    """
-    """
     def __init__(self, background_image_path, sprites_folder_path):
+        self.ui_sprites_width_nbr = 8
         self.visible_tiles = Position(21, 21)
-        self.tile_size = 32
+        self.base_tile_size = 32
+        self.tile_size = self.base_tile_size
         self.window_size = Position(
             self.tile_size * self.visible_tiles.y,
             self.tile_size * self.visible_tiles.x
         )
-        self.full_window_size = self.window_size + Position(0, 200)
+        self.full_window_size = self.window_size + Position(0, self.base_tile_size * (self.ui_sprites_width_nbr + 1))
         ####
         pygame.init()
         pygame.display.set_caption('Level editor')
@@ -44,7 +44,7 @@ class App(object):
         self.top_left_tile = Position(0, 0)
         self.mouse_map_position = Position(-1, -1)
         ####
-        self.delta_time = 1 / 15
+        self.delta_time = 1 / 30
         self.start_time = time.time()
         ####
         self.is_top_layer = True
@@ -56,35 +56,56 @@ class App(object):
             self.display_background_image()
             # self.drawGrid()
             self.draw_map()
-            self.handle_input()
-            # UI related draws
+            # Draw_ui (via draw_sprite_sheet)
+            # will also draw the sprite highlight, based on the selected index
             self.draw_ui()
+            self.handle_input()
 
     def draw_ui(self):
-        # Right UI
+        # Right UI background
         pygame.draw.rect(
             self.d, (255, 255, 255),
             pygame.Rect(self.window_size.x, 0, self.full_window_size.x - self.window_size.x, self.window_size.y)
         )
-        # Separation
+        # Map / UI Separation stripe
         pygame.draw.rect(
             self.d, (0, 0, 0),
-            pygame.Rect(self.window_size.x, 0, 4, self.window_size.y)
+            pygame.Rect(self.window_size.x, 0, self.base_tile_size, self.window_size.y)
         )
+        self.draw_sprite_sheet()
+
+    def draw_sprite_sheet(self):
+        ui_width_px = self.full_window_size.x - self.window_size.x - self.base_tile_size
+        sprites_per_column = ui_width_px // self.base_tile_size
+        sprite_indexes_list = list(self.sprites.keys())
+        sprite_indexes_list.sort(key=get_int_idx)
+        for base_sprite_idx, sprite_idx in enumerate(sprite_indexes_list):
+            pos = Position(base_sprite_idx // sprites_per_column, base_sprite_idx % sprites_per_column)
+            pos *= self.base_tile_size
+            pos += Position(0, self.window_size.x + self.base_tile_size)
+            self.d.blit(self.sprites[sprite_idx], (pos.x, pos.y))
+        # Draw the highlight of the selected sprite
+        highlight_pos = Position(self.selected_sprite_idx // sprites_per_column, self.selected_sprite_idx % sprites_per_column)
+        highlight_pos *= self.base_tile_size
+        highlight_pos.x += self.window_size.x + self.base_tile_size
+        pygame.draw.rect(self.d, (0, 255, 0), pygame.Rect(
+            highlight_pos.x,
+            highlight_pos.y,
+            self.tile_size,
+            self.tile_size
+        ), 2)
+
+    def update_selected_sprite_idx(self, mouse_pos):
+        tile_on_screen = mouse_pos // self.tile_size - Position(0, self.visible_tiles.x + 1)
+        self.selected_sprite_idx = tile_on_screen.x + self.ui_sprites_width_nbr * tile_on_screen.y;
 
     def handle_input(self):
+        self.handle_key_inputs()
+        self.handle_mouse_buttons_inputs()
+        self.handle_mouse_movements()
+
+    def handle_key_inputs(self):
         keys = pygame.key.get_pressed()
-        buttons = pygame.mouse.get_pressed()
-        mouse_pos = pygame.mouse.get_pos()
-        mouse_pos = Position(mouse_pos[1], mouse_pos[0])
-        # Check if mouse is hovering on the map
-        if self.is_mouse_focused_on_map(mouse_pos):
-            self.mouse_map_position = (mouse_pos // self.tile_size) + self.top_left_tile
-            # Mouse is in the border of the screen, move the whole screen
-            self.move_screen_with_mouse(mouse_pos)
-            # Draw tile highlight on cursor pos
-            self.draw_mouse_highlight(mouse_pos)
-            # Refresh mouse_map_position
         # Zoom In / Out
         if keys[K_r] and self.scale_ratio < 1:
             self.zoom_in()
@@ -96,18 +117,46 @@ class App(object):
         # Layer selection
         if keys[K_a]:
             self.is_top_layer = not self.is_top_layer
+
+    def handle_mouse_buttons_inputs(self):
+        buttons = pygame.mouse.get_pressed()
         # Apply sprite
         if buttons[0]:
-            if self.is_top_layer:
-                self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
-            else:
-                self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos = Position(mouse_pos[1], mouse_pos[0])
+            # Check if mouse is hovering on the map
+            mouse_focus = self.get_mouse_focus(mouse_pos)
+            if mouse_focus == 1:
+                if self.is_top_layer:
+                    self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+                else:
+                    self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+            elif mouse_focus == 2:
+                self.update_selected_sprite_idx(mouse_pos)
         # Delete sprite
         if buttons[2]:
             if self.is_top_layer:
                 self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
             else:
                 self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
+
+    def handle_mouse_movements(self):
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = Position(mouse_pos[1], mouse_pos[0])
+        # Check if mouse is hovering on the map
+        mouse_focus = self.get_mouse_focus(mouse_pos)
+        if mouse_focus == 0:
+            self.mouse_map_position = None
+        elif mouse_focus == 1:  # on Map
+            # Refresh mouse_map_position
+            self.mouse_map_position = (mouse_pos // self.tile_size) + self.top_left_tile
+            # Mouse is in the border of the screen, move the whole screen
+            self.move_screen_with_mouse(mouse_pos)
+            # Draw tile highlight on cursor pos
+            self.draw_mouse_highlight(mouse_pos)
+        elif mouse_focus == 2:  # On UI
+            # Refresh mouse_sprites_position
+            self.mouse_map_position = None
 
     def zoom_in(self):
         self.visible_tiles.x = int(((self.visible_tiles.x - 1) / 2) + 1)
@@ -128,8 +177,8 @@ class App(object):
     def draw_map(self):
         for y in range(self.visible_tiles.y):
             for x in range(self.visible_tiles.x):
-                pos = Position(y, x)
-                self.display_entity(pos)
+                tile_screen_pos = Position(y, x)
+                self.display_entity(tile_screen_pos)
 
     def display_entity(self, tile_screen_pos):
         map_pos = tile_screen_pos + self.top_left_tile
@@ -145,7 +194,7 @@ class App(object):
 
     def draw_mouse_highlight(self, mouse_pos):
         tile_on_screen = mouse_pos // self.tile_size
-        color = (255, 0, 0) if self.is_top_layer else (0, 255, 0)
+        color = (255, 255, 255) if self.is_top_layer else (0, 0, 0)
         pygame.draw.rect(self.d, color, pygame.Rect(
             tile_on_screen.x * self.tile_size - 1,
             tile_on_screen.y * self.tile_size - 1,
@@ -198,12 +247,16 @@ class App(object):
                 rect = pygame.Rect(x, y, self.tile_size, self.tile_size)
                 pygame.draw.rect(self.d, "#000000", rect, 1)
 
-    def is_mouse_focused_on_map(self, mouse_pos):
+    def get_mouse_focus(self, mouse_pos):
+        """ 0 = outside window
+        1 = on map
+        2 = on ui
+        """
         if not pygame.mouse.get_focused():
-            return False
+            return 0
         if mouse_pos.x > self.window_size.x:
-            return False
-        return True
+            return 2
+        return 1
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
