@@ -311,7 +311,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
                     prog = 'Poke Map / Level editor',
                     description = 'Poke Map / Level editor',
-                    epilog = "press:\n'R' to zoom\n'T' to dezoom\n'V' to serialize the result to a json loadable by the game\n'A' to change edited layer")
+                    epilog = """press:
+'R' to zoom
+'T' to dezoom
+'V' to serialize the result to a json loadable by the game
+'A' to change edited layer
+'C' to change the backdrop visibility (toggle between: [visible behind the map, semi-transparent on top of the map, disabled])
+"""
+)
     parser.add_argument('-b', '--backdrop', required=False, type=str, default="../ressources/wholemap.png")
     parser.add_argument('-m', '--json_map_path', required=False, type=str, default="")
     parser.add_argument('-s', '--sprites_folder_path', required=False, type=str, default="../../client/sprites/")
