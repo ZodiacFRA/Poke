@@ -40,13 +40,20 @@ class App(object):
         self.in_use_sprites = self.sprites
         self.in_use_backdrop = self.backdrop
         ####
-        reference_map_size = self.backdrop.get_size()
-        self.map_size = Position(reference_map_size[1], reference_map_size[0]) // self.tile_size
+        backdrop_map_size = self.backdrop.get_size()
+        self.backdrop_map_size = Position(
+            backdrop_map_size[1], backdrop_map_size[0]
+        ) // self.tile_size
         if json_map_path:
-            self.top_layer, self.bottom_layer = get_layers_from_json_file(json_map_path)
+            self.top_layer, self.bottom_layer, self.map_size = get_layers_from_json_file(
+                json_map_path
+            )
         else:
-            self.top_layer, self.bottom_layer = init_map_layout(self.map_size)
+            self.top_layer, self.bottom_layer, self.map_size = init_map_layout(
+                self.backdrop_map_size
+            )
         ####
+        print(self.map_size, Position(len(self.top_layer), len(self.top_layer[0])))
         self.moving_zone_pixels = self.window_size // 6
         # Position the map in the center
         # self.top_left_tile = self.map_size // 2 + self.visible_tiles // 2
@@ -56,12 +63,17 @@ class App(object):
         self.delta_time = 1 / 30
         self.start_time = time.time()
         ####
-        self.is_top_layer = True
+        self.toggle_delta_time = 0.1
+        self.edit_top_layer = True
+        self.edit_top_layer_time = time.time()
+        self.display_backdrop_flag = True
+        self.display_backdrop_flag_time = time.time()
         self.selected_sprite_idx = 0
 
     def launch(self):
         while self.handle_loop():
-            self.display_backdrop()
+            if self.display_backdrop_flag:
+                self.display_backdrop()
             self.draw_map_panel()
             self.draw_sprite_sheet_panel()
             self.handle_key_inputs()
@@ -102,27 +114,35 @@ class App(object):
         if keys[K_v]:  # Serialize
             serialize(self.top_layer, self.bottom_layer, self.map_size)
         if keys[K_a]:  # Layer selection
-            self.is_top_layer = not self.is_top_layer
+            if time.time() - self.edit_top_layer_time > self.toggle_delta_time:
+                self.edit_top_layer = not self.edit_top_layer
+                self.edit_top_layer_time = time.time()
+                print(f"[ ] - Editing top layer: {self.edit_top_layer}")
+        if keys[K_c]:  # Toggle backdrop visibility
+            if time.time() - self.display_backdrop_flag_time > self.toggle_delta_time:
+                self.display_backdrop_flag = not self.display_backdrop_flag
+                self.display_backdrop_flag_time = time.time()
+                print(f"[ ] - Backdrop visible: {self.display_backdrop_flag}")
 
     def handle_mouse_buttons_inputs(self):
         buttons = pygame.mouse.get_pressed()
         if buttons[0]:  # Apply sprite
             mouse_pos = pygame.mouse.get_pos()
             mouse_pos = Position(mouse_pos[1], mouse_pos[0])
-            # Check if mouse is hovering on the map
             mouse_focus = self.get_mouse_focus(mouse_pos)
+            # Check if mouse is hovering on the map panel
             if mouse_focus == 1:
-                if self.is_top_layer:
+                if self.edit_top_layer:
                     self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
                 else:
                     self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+            # elif mouse is hovering on top of the right panel,
             elif mouse_focus == 2:
-                # elif mouse is hovering on top of the right panel,
-                # update the self.selected_sprite_idx based on the mouse position
+                # Update the self.selected_sprite_idx based on the mouse position
                 tile_on_screen = mouse_pos // self.tile_size - Position(0, self.visible_tiles.x + 1)
                 self.selected_sprite_idx = tile_on_screen.x + self.ui_sprites_width_nbr * tile_on_screen.y;
         if buttons[2]:  # Delete sprite
-            if self.is_top_layer:
+            if self.edit_top_layer:
                 self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
             else:
                 self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
@@ -150,16 +170,16 @@ class App(object):
         only double or divide by 2 the sprite size and the nbr of visible tiles
         then rescale the backdrop and all the sprites
         """
-        self.visible_tiles.x = int(((self.visible_tiles.x - 1) / 2) + 1)
-        self.visible_tiles.y = int(((self.visible_tiles.y - 1) / 2) + 1)
+        self.visible_tiles.x = int(((self.visible_tiles.x - 1) / 2) + 2)
+        self.visible_tiles.y = int(((self.visible_tiles.y - 1) / 2) + 2)
         self.tile_size = int(self.tile_size * 2)
         self.scale_ratio *= 2
         self.in_use_backdrop = rescale_sprite(self.backdrop, self.scale_ratio)
         self.in_use_sprites = rescale_sprites(self.sprites, self.scale_ratio)
 
     def zoom_out(self):
-        self.visible_tiles.x = int(((self.visible_tiles.x - 1) * 2) + 1)
-        self.visible_tiles.y = int(((self.visible_tiles.y - 1) * 2) + 1)
+        self.visible_tiles.x = int(((self.visible_tiles.x - 1) * 2) + 2)
+        self.visible_tiles.y = int(((self.visible_tiles.y - 1) * 2) + 2)
         self.tile_size = int(self.tile_size / 2)
         self.scale_ratio /= 2
         self.in_use_backdrop = rescale_sprite(self.backdrop, self.scale_ratio)
@@ -176,16 +196,22 @@ class App(object):
                 top_entity = self.top_layer[map_pos.y][map_pos.x]
                 bottom_entity = self.bottom_layer[map_pos.y][map_pos.x]
                 tile_pixel_pos = tile_screen_pos * self.tile_size
-                if bottom_entity:
+                if bottom_entity is not None:
+                    # try:
                     self.d.blit(self.in_use_sprites[bottom_entity], (tile_pixel_pos.x, tile_pixel_pos.y))
-                if top_entity:
+                    # except:
+                        # print(bottom_entity)
+                if top_entity is not None:
+                    # try:
                     self.d.blit(self.in_use_sprites[top_entity], (tile_pixel_pos.x, tile_pixel_pos.y))
+                    # except:
+                        # print(top_entity)
 
     def draw_map_mouse_highlight(self, mouse_pos):
         """ Only called when the mouse is on the map panel, will draw square borders
         on the hovered tile, color is based on the active layer """
         tile_on_screen = mouse_pos // self.tile_size
-        color = (255, 255, 255) if self.is_top_layer else (0, 0, 0)
+        color = (255, 255, 255) if self.edit_top_layer else (0, 0, 0)
         pygame.draw.rect(self.d, color, pygame.Rect(
             tile_on_screen.x * self.tile_size - 1,
             tile_on_screen.y * self.tile_size - 1,
@@ -229,7 +255,7 @@ class App(object):
         self.d.blit(self.in_use_backdrop, (x_pos, y_pos))
 
     def is_valid_pos_on_map(self, pos):
-        if pos.x < 0 or pos.y < 0 or pos.x >= self.map_size.x or pos.y >= self.map_size.y:
+        if pos.x < 0 or pos.y < 0 or pos.x > self.map_size.x or pos.y > self.map_size.y:
             return False
         else:
             return True
@@ -250,24 +276,26 @@ class App(object):
 
     def draw_ui(self):
         # Right UI background
-        pygame.draw.rect(
-            self.d, (255, 255, 255),
+        pygame.draw.rect(self.d, "#ffffff",
             pygame.Rect(
-                self.window_size.x,
-                0,
-                self.full_window_size.x - self.window_size.x,
-                self.window_size.y
+                self.window_size.x, 0,
+                self.full_window_size.x - self.window_size.x, self.window_size.y
             )
         )
         # Map / UI Separation stripes
-        pygame.draw.rect(
-            self.d, "#004E89",
+        pygame.draw.rect(self.d, "#ffffff",
             pygame.Rect(
-                self.window_size.x,
-                0,
-                self.base_tile_size,
-                self.window_size.y
+                self.window_size.x, 0,
+                self.base_tile_size, self.window_size.y
             )
+        )
+        pygame.draw.line(self.d, "#000000",
+            (self.window_size.x + 1, 0),
+            (self.window_size.x + 1, self.window_size.y), 3
+        )
+        pygame.draw.line(self.d, "#000000",
+            (self.window_size.x + self.base_tile_size - 2, 0),
+            (self.window_size.x + self.base_tile_size - 2, self.window_size.y), 3
         )
 
 
