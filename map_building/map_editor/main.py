@@ -204,15 +204,9 @@ class App(object):
                 bottom_entity = self.bottom_layer[map_pos.y][map_pos.x]
                 tile_pixel_pos = tile_screen_pos * self.tile_size
                 if bottom_entity is not None:
-                    # try:
                     self.d.blit(self.in_use_sprites[bottom_entity], (tile_pixel_pos.x, tile_pixel_pos.y))
-                    # except:
-                        # print(bottom_entity)
                 if top_entity is not None:
-                    # try:
                     self.d.blit(self.in_use_sprites[top_entity], (tile_pixel_pos.x, tile_pixel_pos.y))
-                    # except:
-                        # print(top_entity)
 
     def draw_map_mouse_highlight(self, mouse_pos):
         """ Only called when the mouse is on the map panel, will draw square borders
@@ -311,7 +305,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
                     prog = 'Poke Map / Level editor',
                     description = 'Poke Map / Level editor',
-                    epilog = """press:
+                    epilog = """Keymap:
 'R' to zoom
 'T' to dezoom
 'V' to serialize the result to a json loadable by the game
