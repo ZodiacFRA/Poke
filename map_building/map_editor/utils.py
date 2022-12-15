@@ -36,7 +36,6 @@ def get_layers_from_json_file(map_filepath):
                 top_line.append(None)
         top.append(top_line)
         bottom.append(bottom_line)
-    # print(len())
     return top, bottom, Position(y_size, x_size)
 
 def load_sprites(sprites_dir):
@@ -53,7 +52,6 @@ def load_sprite(filepath, resize_factor=1):
         return res
     else:
         size = res.get_size()
-        # create a 2x bigger image than self.image
         return pygame.transform.scale(
             res,
             (int(size[0]*resize_factor), int(size[1]*resize_factor))
@@ -104,7 +102,6 @@ def serialize(top_layer, bottom_layer, map_size):
     with open("./map.json", 'w') as f:
         f.write(json.dumps(res))
     print("[+] - Serializing done, wrote to ./map.json")
-
 
 def get_int_idx(elem):
     elem = int(elem)

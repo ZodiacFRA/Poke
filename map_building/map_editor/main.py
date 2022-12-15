@@ -53,7 +53,6 @@ class App(object):
                 self.backdrop_map_size
             )
         ####
-        print(self.map_size, Position(len(self.top_layer), len(self.top_layer[0])))
         self.moving_zone_pixels = self.window_size // 6
         # Position the map in the center
         # self.top_left_tile = self.map_size // 2 + self.visible_tiles // 2
@@ -68,7 +67,14 @@ class App(object):
         self.edit_top_layer_time = time.time()
         self.display_backdrop_flag = 0
         self.display_backdrop_flag_time = time.time()
+        ####
         self.selected_sprite_idx = 0
+        self.sprites_list_offset = 0
+        self.ui_width_px = self.full_window_size.x - self.window_size.x - self.base_tile_size
+        self.sprites_per_row = self.ui_width_px // self.base_tile_size
+        self.total_row_nbr = len(self.sprites) // self.sprites_per_row
+        self.total_displayable_rows = self.window_size.y // self.base_tile_size
+        self.max_sprites_list_offset = self.total_row_nbr - self.total_displayable_rows
 
     def launch(self):
         while self.handle_loop():
@@ -89,17 +95,24 @@ class App(object):
         # Draw the white background
         self.draw_ui()
         # Now draw the available sprites
-        ui_width_px = self.full_window_size.x - self.window_size.x - self.base_tile_size
-        sprites_per_column = ui_width_px // self.base_tile_size
         sprite_indexes_list = list(self.sprites.keys())
         sprite_indexes_list.sort(key=get_int_idx)
-        for base_sprite_idx, sprite_idx in enumerate(sprite_indexes_list):
-            pos = Position(base_sprite_idx // sprites_per_column, base_sprite_idx % sprites_per_column)
+
+        sprite_list_idx_start = self.sprites_list_offset * self.sprites_per_row
+
+        for base_sprite_idx, sprite_idx in enumerate(sprite_indexes_list[sprite_list_idx_start:]):
+            pos = Position(
+                base_sprite_idx // self.sprites_per_row,
+                base_sprite_idx % self.sprites_per_row
+            )
             pos *= self.base_tile_size
             pos += Position(0, self.window_size.x + self.base_tile_size)
             self.d.blit(self.sprites[sprite_idx], (pos.x, pos.y))
         # Draw the highlight of the selected sprite
-        highlight_pos = Position(self.selected_sprite_idx // sprites_per_column, self.selected_sprite_idx % sprites_per_column)
+        highlight_pos = Position(
+            self.selected_sprite_idx // self.sprites_per_row,
+            self.selected_sprite_idx % self.sprites_per_row
+        )
         highlight_pos *= self.base_tile_size
         highlight_pos.x += self.window_size.x + self.base_tile_size
         pygame.draw.rect(self.d, (0, 255, 0), pygame.Rect(
@@ -147,7 +160,11 @@ class App(object):
             elif mouse_focus == 2:
                 # Update the self.selected_sprite_idx based on the mouse position
                 tile_on_screen = mouse_pos // self.tile_size - Position(0, self.visible_tiles.x + 1)
-                self.selected_sprite_idx = tile_on_screen.x + self.ui_sprites_width_nbr * tile_on_screen.y;
+                self.selected_sprite_idx = (
+                    tile_on_screen.x
+                    + (self.ui_sprites_width_nbr * tile_on_screen.y)
+                    + (self.sprites_list_offset * self.sprites_per_row)
+                )
         if buttons[2]:  # Delete sprite
             if self.edit_top_layer:
                 self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
@@ -171,6 +188,7 @@ class App(object):
         elif mouse_focus == 2:  # On UI
             # Refresh mouse_sprites_position
             self.mouse_map_position = None
+            self.move_sprites_panel_with_mouse(mouse_pos)
 
     def zoom_in(self):
         """ For both zoom_in and zoom_out, do not change the window size,
@@ -232,6 +250,14 @@ class App(object):
             self.top_left_tile.y += int(1 / self.scale_ratio)
         if mouse_pos.x < self.moving_zone_pixels.x:
             self.top_left_tile.x -= int(1 / self.scale_ratio)
+
+    def move_sprites_panel_with_mouse(self, mouse_pos):
+        """ if mouse is in the "movement zone" (on the edge of the map panel)
+        move sprites map in their panel """
+        if mouse_pos.y < self.moving_zone_pixels.y and self.sprites_list_offset > 0:
+            self.sprites_list_offset -= 1
+        if mouse_pos.y > self.window_size.y - self.moving_zone_pixels.y and self.sprites_list_offset < self.max_sprites_list_offset:
+            self.sprites_list_offset += 1
 
     def handle_loop(self, debug=False):
         pygame.display.update()
