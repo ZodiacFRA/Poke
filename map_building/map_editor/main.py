@@ -13,7 +13,7 @@ from utils import *
 class App(object):
     def __init__(self, backdrop_path, sprites_folder_path, json_map_path):
         # Members needed for sprite scaling
-        self.visible_tiles = Position(31, 31)  # Needs to be odd
+        self.visible_tiles = Position(32, 32)  # Needs to be odd
         self.base_tile_size = 32  # Needs to be even
         self.tile_size = self.base_tile_size
         self.scale_ratio = 1
@@ -160,12 +160,21 @@ class App(object):
             # elif mouse is hovering on top of the right panel,
             elif mouse_focus == 2:
                 # Update the self.selected_sprite_idx based on the mouse position
-                tile_on_screen = mouse_pos // self.tile_size - Position(0, self.visible_tiles.x + 1)
-                self.selected_sprite_idx = (
+                sprites_panel_top_left_pos__px = (
+                    Position(0, self.full_window_size.x)
+                    - Position(0, self.sprites_per_row * self.base_tile_size)
+                )
+                tile_on_panel = (
+                    (mouse_pos - sprites_panel_top_left_pos__px)
+                    // self.base_tile_size
+                )
+                tmp_idx = (
                     tile_on_screen.x
                     + (self.ui_sprites_width_nbr * tile_on_screen.y)
                     + (self.sprites_list_offset * self.sprites_per_row)
                 )
+                if tmp_idx > -1 and tmp_idx < len(self.sprites):
+                    self.selected_sprite_idx = tmp_idx
         if buttons[2]:  # Delete sprite
             if self.edit_top_layer:
                 self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = None
@@ -196,16 +205,16 @@ class App(object):
         only double or divide by 2 the sprite size and the nbr of visible tiles
         then rescale the backdrop and all the sprites
         """
-        self.visible_tiles.x = int(((self.visible_tiles.x - 1) / 2) + 2)
-        self.visible_tiles.y = int(((self.visible_tiles.y - 1) / 2) + 2)
+        self.visible_tiles.x = int(self.visible_tiles.x // 2)
+        self.visible_tiles.y = int(self.visible_tiles.y // 2)
         self.tile_size = int(self.tile_size * 2)
         self.scale_ratio *= 2
         self.in_use_backdrop = rescale_sprite(self.backdrop, self.scale_ratio)
         self.in_use_sprites = rescale_sprites(self.sprites, self.scale_ratio)
 
     def zoom_out(self):
-        self.visible_tiles.x = int(((self.visible_tiles.x - 1) * 2) + 2)
-        self.visible_tiles.y = int(((self.visible_tiles.y - 1) * 2) + 2)
+        self.visible_tiles.x = int(self.visible_tiles.x * 2)
+        self.visible_tiles.y = int(self.visible_tiles.y * 2)
         self.tile_size = int(self.tile_size / 2)
         self.scale_ratio /= 2
         self.in_use_backdrop = rescale_sprite(self.backdrop, self.scale_ratio)
