@@ -37,6 +37,7 @@ const server = {
     switch (this.msgFromServer.msg_type) {
       case "init_map":
         app.map = this.msgFromServer.map;
+        app.ticker.start();
         break;
       case "update":
         app.player_pos.x = this.msgFromServer.player_pos.x;
