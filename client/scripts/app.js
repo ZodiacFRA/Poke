@@ -1,5 +1,5 @@
-const SCREEN_WIDTH_TILES = 15;
-const SCREEN_HEIGHT_TILES = 8;
+const SCREEN_WIDTH_TILES = 30;
+const SCREEN_HEIGHT_TILES = 16;
 const PLAYER_ID = "UnDesSix";
 const SCALE = 4;
 const TILE_SIZE = 32 * SCALE;
@@ -44,37 +44,43 @@ const app = {
   //     }
   // },
 
-  computeSprites: function (x, y, topLeftTileIdx) {
-    let bottom_idx =
-      this.map.bottom[topLeftTileIdx.y + y][topLeftTileIdx.x + x];
-    if (
-      (bottom_idx > 14 && bottom_idx < 19) ||
-      (bottom_idx > 26 && bottom_idx < 31)
-    ) {
-      const sprite = new PIXI.Sprite(this.textures[214 + this.tickerFlag]); // FLOWERS SPRITES
-      sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0);
-      sprite.x = x * TILE_SIZE;
-      sprite.y = y * TILE_SIZE;
-      this.containers.bottom.addChild(sprite);
-    } else if (bottom_idx > -1) {
-      // idx matches with the images index. If map[y][x] is 0, then idx = 0 and
-      // the function will load imgSrc[0] as a texture.
-      const sprite = new PIXI.Sprite(this.textures[bottom_idx]);
-      sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0);
-      sprite.x = x * TILE_SIZE;
-      sprite.y = y * TILE_SIZE;
-      this.containers.bottom.addChild(sprite);
-    }
-    let top_idx = this.map.top[topLeftTileIdx.y + y][topLeftTileIdx.x + x];
-    if (top_idx >= 0) {
-      let offsetPlayer = 0;
-      if (top_idx > 999 && top_idx < 1004) offsetPlayer = 16 * SCALE;
-      const sprite = new PIXI.Sprite(this.textures[top_idx]);
-      sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0);
-      sprite.x = x * TILE_SIZE;
-      sprite.y = y * TILE_SIZE - offsetPlayer;
-      this.containers.top.addChild(sprite);
-    }
+  computeFlowers: function (x, y) {
+    const sprite = new PIXI.Sprite(this.textures[214 + this.tickerFlag]); // FLOWERS SPRITES
+    sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0);
+    sprite.x = x * TILE_SIZE;
+    sprite.y = y * TILE_SIZE;
+    this.containers.bottom.addChild(sprite);
+  },
+
+  // TMP FUNCTION
+  computeOtherBottom: function (x, y, bottom_idx) {
+    const sprite = new PIXI.Sprite(this.textures[bottom_idx]);
+    sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0);
+    sprite.x = x * TILE_SIZE;
+    sprite.y = y * TILE_SIZE;
+    this.containers.bottom.addChild(sprite);
+  },
+
+  // TMP FUNCTION
+  computeOtherTop: function (x, y, top_idx) {
+    let offsetPlayer = 0;
+    if (top_idx > 999 && top_idx < 1004) offsetPlayer = 16 * SCALE;
+    const sprite = new PIXI.Sprite(this.textures[top_idx]);
+    sprite.setTransform(0, 0, SCALE, SCALE, 0, 0, 0, 0, 0);
+    sprite.x = x * TILE_SIZE;
+    sprite.y = y * TILE_SIZE - offsetPlayer;
+    this.containers.top.addChild(sprite);
+  },
+
+  computeSprites: function (x, y, corner) {
+    // Compute bottom sprites
+    let bottom_idx = this.map.bottom[corner.y + y][corner.x + x];
+    if (spriteDetector.isFlower(bottom_idx)) this.computeFlowers(x, y);
+    else if (bottom_idx > -1) this.computeOtherBottom(x, y, bottom_idx);
+
+    // Compute top sprites
+    let top_idx = this.map.top[corner.y + y][corner.x + x];
+    if (top_idx >= 0) this.computeOtherTop(x, y, top_idx);
   },
 
   displayMap: function () {
@@ -113,12 +119,17 @@ const app = {
     });
     let totaltime = 0;
     this.ticker.add(() => {
+      // CREATE A MESSAGE FOR THE SERVER ABOUT THE KEY
+      server.msgToServer = {
+        msg_type: "key_input",
+        key: directionInput.direction,
+      };
+      if (server.msgToServer.key)
+        server.connection.send(JSON.stringify(server.msgToServer));
+
       totaltime += this.ticker.deltaTime;
-      if (totaltime < 20) this.tickerFlag = 0;
-      else if (totaltime < 40) this.tickerFlag = 1;
-      else if (totaltime < 60) this.tickerFlag = 2;
-      else if (totaltime < 80) this.tickerFlag = 3;
-      if (totaltime >= 80) totaltime = 0;
+      if (totaltime > 120) totaltime = 0;
+      this.tickerFlag = Math.trunc(totaltime / 30);
       this.displayMap();
       this.renderer.render(this.stage);
     }, PIXI.UPDATE_PRIORITY.LOW);
@@ -139,3 +150,5 @@ const app = {
 };
 
 app.init();
+directionInput = new DirectionInput();
+directionInput.init();

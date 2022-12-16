@@ -18,7 +18,7 @@ const server = {
 
   listen: function () {
     this.connect();
-    keyboard.listen();
+    // keyboard.listen();
 
     this.connection.onerror = (error) => {
       console.log("WebSocket error: ${error}");
@@ -33,7 +33,7 @@ const server = {
   },
 
   parseMsg: function () {
-    console.log(this.msgFromServer);
+    // console.log(this.msgFromServer);
     switch (this.msgFromServer.msg_type) {
       case "init_map":
         app.map = this.msgFromServer.map;

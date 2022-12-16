@@ -31,16 +31,3 @@ class image {
       this.isForeground = true;
   }
 }
-
-const keyboard = {
-  listen: function () {
-    window.addEventListener("keydown", (e) => {
-      server.msgToServer = {
-        msg_type: "key_input",
-        key: e.key,
-      };
-      if (server.connection)
-        server.connection.send(JSON.stringify(server.msgToServer));
-    });
-  },
-};
