@@ -1,1 +1,2 @@
 - Prevent user from going too far from the map
+- Fix mismatch in sprites idx from thoses loaded (file names) and the index in the list in the code

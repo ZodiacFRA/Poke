@@ -35,6 +35,8 @@ class App(object):
             backdrop_path,
             resize_factor=2
         )
+        self.sprite_indexes_list = list(self.sprites.keys())
+        self.sprite_indexes_list.sort(key=get_int_idx)
         # "in_use" members are needed as we want to rescale
         # from the original sprites each time
         self.in_use_sprites = self.sprites
@@ -66,7 +68,7 @@ class App(object):
         self.toggle_delta_time = 0.1
         self.edit_top_layer = True
         self.edit_top_layer_time = time.time()
-        self.display_backdrop_flag = 0
+        self.display_backdrop_flag = 1
         self.display_backdrop_flag_time = time.time()
         ####
         self.selected_sprite_idx = 0
@@ -88,20 +90,17 @@ class App(object):
                 self.display_backdrop()
             self.draw_sprite_sheet_panel()
             self.handle_key_inputs()
-            self.handle_mouse_buttons_inputs()
             self.handle_mouse_movements()
+            self.handle_mouse_buttons_inputs()
 
 
     def draw_sprite_sheet_panel(self):
         # Draw the white background
         self.draw_ui()
         # Now draw the available sprites
-        sprite_indexes_list = list(self.sprites.keys())
-        sprite_indexes_list.sort(key=get_int_idx)
-
         sprite_list_idx_start = self.sprites_list_offset * self.sprites_per_row
 
-        for base_sprite_idx, sprite_idx in enumerate(sprite_indexes_list[sprite_list_idx_start:]):
+        for base_sprite_idx, sprite_idx in enumerate(self.sprite_indexes_list[sprite_list_idx_start:]):
             pos = Position(
                 base_sprite_idx // self.sprites_per_row,
                 base_sprite_idx % self.sprites_per_row
@@ -147,16 +146,17 @@ class App(object):
 
     def handle_mouse_buttons_inputs(self):
         buttons = pygame.mouse.get_pressed()
-        if buttons[0]:  # Apply sprite
+        if buttons[0]:  # Apply sprite / Select sprite
             mouse_pos = pygame.mouse.get_pos()
             mouse_pos = Position(mouse_pos[1], mouse_pos[0])
             mouse_focus = self.get_mouse_focus(mouse_pos)
             # Check if mouse is hovering on the map panel
             if mouse_focus == 1:
-                if self.edit_top_layer:
-                    self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
-                else:
-                    self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+                if self.is_valid_pos_on_map(self.mouse_map_position):
+                    if self.edit_top_layer:
+                        self.top_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
+                    else:
+                        self.bottom_layer[self.mouse_map_position.y][self.mouse_map_position.x] = str(self.selected_sprite_idx)
             # elif mouse is hovering on top of the right panel,
             elif mouse_focus == 2:
                 # Update the self.selected_sprite_idx based on the mouse position
@@ -169,10 +169,16 @@ class App(object):
                     // self.base_tile_size
                 )
                 tmp_idx = (
-                    tile_on_screen.x
-                    + (self.ui_sprites_width_nbr * tile_on_screen.y)
+                    tile_on_panel.x
+                    + (self.ui_sprites_width_nbr * tile_on_panel.y)
                     + (self.sprites_list_offset * self.sprites_per_row)
                 )
+                # Now convert this index (which is based on the position) to
+                # the "real" index.
+                # The sprites we load filenames are ints, but are not sequential
+                # so there is a mismatch between sprite position in this panel
+                # and the real sprite idx
+                real_idx = self.sprite_indexes_list
                 if tmp_idx > -1 and tmp_idx < len(self.sprites):
                     self.selected_sprite_idx = tmp_idx
         if buttons[2]:  # Delete sprite
@@ -252,14 +258,19 @@ class App(object):
         """ if mouse is in the "movement zone" (on the edge of the map panel)
         move the map, use the scale ratio to move quicker or slower based on
         the level of zoom """
+        limits = self.map_size - self.visible_tiles
         if mouse_pos.y < self.moving_zone_pixels.y:
-            self.top_left_tile.y -= int(1 / self.scale_ratio)
+            if self.top_left_tile.y > 0:
+                self.top_left_tile.y -= int(1 / self.scale_ratio)
         if mouse_pos.x > self.window_size.x - self.moving_zone_pixels.x:
-            self.top_left_tile.x += int(1 / self.scale_ratio)
+            if self.top_left_tile.x < limits.x:
+                self.top_left_tile.x += int(1 / self.scale_ratio)
         if mouse_pos.y > self.window_size.y - self.moving_zone_pixels.y:
-            self.top_left_tile.y += int(1 / self.scale_ratio)
+            if self.top_left_tile.y < limits.y:
+                self.top_left_tile.y += int(1 / self.scale_ratio)
         if mouse_pos.x < self.moving_zone_pixels.x:
-            self.top_left_tile.x -= int(1 / self.scale_ratio)
+            if self.top_left_tile.x > 0:
+                self.top_left_tile.x -= int(1 / self.scale_ratio)
 
     def move_sprites_panel_with_mouse(self, mouse_pos):
         """ if mouse is in the "movement zone" (on the edge of the map panel)
