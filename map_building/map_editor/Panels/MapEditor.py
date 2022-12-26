@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 import display_utils
@@ -14,12 +16,6 @@ class MapEditor(Panel):
         ### Map data
         self.map, self.t_map_size = map_data
         self.t_m_limits = self.t_map_size - self.t_panel_size
-        ### Positions
-        # TODO: propagate (flood search) from top left
-        # t_m_first_non_empty_tile = self.get_first_non_empty_tile()
-        # self.t_m_anchor = (
-        #     t_m_first_non_empty_tile if t_m_first_non_empty_tile else Vector2(0, 0)
-        # )
         ### Positioning
         self.t_m_anchor = Vector2(0, 0)
         self.px_p_delta = Vector2(0, 0)
@@ -28,15 +24,21 @@ class MapEditor(Panel):
         ### Zoom
         self.scale_ratio = 1
         self.px_scaled_tile_size = self.px_tile_size
+        ### Utils
+        self.toggle_delta_time = 0.1
         ### Backdrop
         self.backdrop = backdrop
         self.scaled_backdrop = backdrop
         self.scaled_backdrop.set_alpha(150)
         self.display_backdrop_flag = 0
+        self.display_backdrop_flag_time = time.time()
+        ###
+        self.grid_surface = self.recompute_grid_surface()
 
     ### Drawing functions
 
     def draw(self):
+        self.display.fill((40, 40, 40))
         if self.display_backdrop_flag == 1:
             self.display_backdrop()
         self.draw_map()
@@ -46,8 +48,10 @@ class MapEditor(Panel):
         self.draw_highlighted_tile()
 
     def display_backdrop(self):
-        px_anchor = (Vector2(0, 0) - self.t_m_anchor) * self.px_scaled_tile_size
-        self.display.blit(self.scaled_backdrop, (px_anchor - self.px_p_delta).get())
+        px_anchor = (
+            (Vector2(0, 0) - self.t_m_anchor) * self.px_scaled_tile_size
+        ) - self.px_p_delta
+        self.display.blit(self.scaled_backdrop, px_anchor.get())
 
     def draw_map(self):
         for y in range(-1, self.t_panel_size.y + 1):
@@ -91,19 +95,7 @@ class MapEditor(Panel):
         )
 
     def draw_grid(self):
-        px_height = self.px_panel_size.y + self.px_scaled_tile_size
-        px_width = self.px_panel_size.x + self.px_scaled_tile_size
-        for y in range(0, px_height, self.px_scaled_tile_size):
-            for x in range(
-                0,
-                px_width,
-                self.px_scaled_tile_size,
-            ):
-                px_p_pos = Vector2(x, y) - self.px_p_delta
-                rect = pygame.Rect(
-                    *px_p_pos.get(), self.px_scaled_tile_size, self.px_scaled_tile_size
-                )
-                pygame.draw.rect(self.display, "#000000", rect, 1)
+        self.display.blit(self.grid_surface, (-self.px_p_delta.x, -self.px_p_delta.y))
 
     ### Processing functions
 
@@ -111,7 +103,9 @@ class MapEditor(Panel):
         # Mouse related
         px_p_cursor = inputs["cursor"] - self.px_anchor
         if self.is_cursor_hovering(px_p_cursor):
-            self.context["t_m_hovered_tile"] = px_p_cursor // self.px_scaled_tile_size
+            self.context["t_m_hovered_tile"] = (
+                px_p_cursor + self.px_p_delta
+            ) // self.px_scaled_tile_size
             self.move_map_with_mouse(px_p_cursor)
         else:
             self.context["t_m_hovered_tile"] = None
@@ -124,6 +118,13 @@ class MapEditor(Panel):
             self.zoom_in()
         if keys[pygame.K_t] and self.scale_ratio > 1 / 4:
             self.zoom_out()
+        if keys[pygame.K_c]:  # Toggle backdrop visibility
+            if time.time() - self.display_backdrop_flag_time > self.toggle_delta_time:
+                self.display_backdrop_flag += 1
+                self.display_backdrop_flag %= 3
+                self.display_backdrop_flag_time = time.time()
+                tmp = ["off", "on", "on top"]
+                print(f"[ ] - Backdrop is {tmp[self.display_backdrop_flag]}")
 
     def zoom_in(self):
         """For both zoom_in and zoom_out, do not change the window size,
@@ -141,6 +142,7 @@ class MapEditor(Panel):
         self.scaled_sprites = display_utils.rescale_sprites(
             self.sprites, self.scale_ratio
         )
+        self.grid_surface = self.recompute_grid_surface()
 
     def zoom_out(self):
         self.t_panel_size.x = int(self.t_panel_size.x * 2)
@@ -154,6 +156,18 @@ class MapEditor(Panel):
         self.scaled_sprites = display_utils.rescale_sprites(
             self.sprites, self.scale_ratio
         )
+        self.grid_surface = self.recompute_grid_surface()
+
+    def recompute_grid_surface(self):
+        px_height = self.px_panel_size.y + self.px_scaled_tile_size
+        px_width = self.px_panel_size.x + self.px_scaled_tile_size
+        grid_surface = pygame.Surface((px_width, px_height), pygame.SRCALPHA)
+        grid_surface.set_alpha(100)
+        for y in range(0, px_height, self.px_scaled_tile_size):
+            pygame.draw.line(grid_surface, "#000000", (0, y), (px_width, y))
+        for x in range(0, px_width, self.px_scaled_tile_size):
+            pygame.draw.line(grid_surface, "#000000", (x, 0), (x, px_height))
+        return grid_surface
 
     def move_map_with_mouse(self, px_p_cursor):
         """t_tiles_delta represents how far the cursor is from the mouse_moving_zone

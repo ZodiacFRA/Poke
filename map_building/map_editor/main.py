@@ -35,7 +35,7 @@ class App(object):
             self.display,
             self.sprites,
             self.context,
-            map_utils.load_map_from_json(map_json_path, crop=False),
+            map_utils.load_map_from_json(map_json_path, crop=True),
             self.backdrop,
         )
 
