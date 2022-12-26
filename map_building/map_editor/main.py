@@ -2,40 +2,51 @@ import time
 
 import pygame
 
-import map_utils
 import config
+from Map import Map
 import display_utils
 from Vector2 import Vector2
 
 
 class App(object):
-    def __init__(self, sprites_folder_path, backdrop_path=None, map_json_path=None):
+    def __init__(
+        self,
+        sprites_dir_path,
+        map_json_path=None,
+        crop_map=True,
+        backdrop_path=None,
+        backdrop_resize_factor=1,
+    ):
         ### FPS
         self.delta_time = 1 / 30
         self.frame_start_time = time.time()
-        ### Context
-        self.context = {
-            "is_top_layer_selected": True,
-            "selected_sprite_name": 0,
-            "t_m_hovered_tile": Vector2(0, 0),
-        }
         ### Pygame
         pygame.init()
         pygame.display.set_caption("Level editor")
-        ### Window & Layout
+        ### Display
         self.px_window_size = config.t_window_size * config.px_tile_size
         self.display = pygame.display.set_mode(self.px_window_size.get())
-        self.sprites = display_utils.load_sprites(sprites_folder_path)
+        # Load ressources
+        self.sprites = display_utils.load_sprites(sprites_dir_path)
         self.backdrop = (
-            display_utils.load_sprite(backdrop_path, resize_factor=2)
+            display_utils.load_sprite(
+                backdrop_path, resize_factor=backdrop_resize_factor
+            )
             if backdrop_path
             else None
         )
+        ### Context
+        self.context = {
+            "is_top_layer_selected": True,
+            "selected_sprite_name": 1,
+            "t_m_hovered_tile": Vector2(0, 0),
+            "map": Map(map_json_path, self.backdrop, crop=crop_map),
+        }
+        # Create layout
         self.panels = display_utils.create_panels(
             self.display,
             self.sprites,
             self.context,
-            map_utils.load_map_from_json(map_json_path, crop=True),
             self.backdrop,
         )
 
@@ -76,8 +87,9 @@ class App(object):
 
 if __name__ == "__main__":
     app = App(
-        sprites_folder_path="../../client/sprites/",
-        backdrop_path="../ressources/map_gen1_bw.png",
+        sprites_dir_path="../../client/sprites/",
         map_json_path="../sprite_map_to_map/map_loadable.json",
+        backdrop_path="../ressources/map_gen1_bw.png",
+        backdrop_resize_factor=2,
     )
     app.launch()

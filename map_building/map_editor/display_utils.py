@@ -8,7 +8,7 @@ import config
 import Panels
 
 
-def create_panels(display, sprites, context, map_data, backdrop):
+def create_panels(display, sprites, context, backdrop):
     panels = [
         Panels.MapEditor(
             display.subsurface(
@@ -19,7 +19,6 @@ def create_panels(display, sprites, context, map_data, backdrop):
             config.px_tile_size,
             sprites,
             context,
-            map_data,
             backdrop,
         ),
         Panels.TileVizualizer(

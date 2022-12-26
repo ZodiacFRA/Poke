@@ -11,11 +11,10 @@ class MapEditor(Panel):
     """_p_ is a position in panel space. (0, 0) is the anchor
     _m_ is a position in map space. (0, 0) is the top left tile on the map"""
 
-    def __init__(self, display, px_tile_size, sprites, context, map_data, backdrop):
+    def __init__(self, display, px_tile_size, sprites, context, backdrop):
         super().__init__(display, px_tile_size, sprites, context)
         ### Map data
-        self.map, self.t_map_size = map_data
-        self.t_m_limits = self.t_map_size - self.t_panel_size
+        self.t_m_limits = self.context["map"].t_size - self.t_panel_size
         ### Positioning
         self.t_m_anchor = Vector2(0, 0)
         self.px_p_delta = Vector2(0, 0)
@@ -25,15 +24,19 @@ class MapEditor(Panel):
         self.scale_ratio = 1
         self.px_scaled_tile_size = self.px_tile_size
         ### Utils
-        self.toggle_delta_time = 0.1
+        self.grid_surface = self.recompute_grid_surface()
         ### Backdrop
         self.backdrop = backdrop
         self.scaled_backdrop = backdrop
         self.scaled_backdrop.set_alpha(150)
         self.display_backdrop_flag = 0
-        self.display_backdrop_flag_time = time.time()
-        ###
-        self.grid_surface = self.recompute_grid_surface()
+        ### Delays
+        self.input_delta_time = 0.25
+        tmp = time.time()
+        self.delays = {
+            "display_backdrop_flag": tmp,
+            "is_top_layer_selected": tmp,
+        }
 
     ### Drawing functions
 
@@ -61,10 +64,10 @@ class MapEditor(Panel):
                 px_p_tile_pos = (
                     t_p_tile_pos * self.px_scaled_tile_size - self.px_p_delta
                 )
-                if not self.is_valid_pos_on_map(t_m_tile_pos):
+                if not self.context["map"].is_valid_t_pos(t_m_tile_pos):
                     continue
-                top_entity_data = self.map["top"][t_m_tile_pos.y][t_m_tile_pos.x]
-                bottom_entity_data = self.map["bottom"][t_m_tile_pos.y][t_m_tile_pos.x]
+                top_entity_data = self.context["map"].get("top", t_m_tile_pos)
+                bottom_entity_data = self.context["map"].get("bottom", t_m_tile_pos)
                 if bottom_entity_data:
                     self.display.blit(
                         self.scaled_sprites[bottom_entity_data[1]],
@@ -85,7 +88,10 @@ class MapEditor(Panel):
             color,
             pygame.Rect(
                 *(
-                    (self.context["t_m_hovered_tile"] * self.px_scaled_tile_size)
+                    (
+                        (self.context["t_m_hovered_tile"] - self.t_m_anchor)
+                        * self.px_scaled_tile_size
+                    )
                     - self.px_p_delta
                 ).get(),
                 self.px_scaled_tile_size,
@@ -103,14 +109,37 @@ class MapEditor(Panel):
         # Mouse related
         px_p_cursor = inputs["cursor"] - self.px_anchor
         if self.is_cursor_hovering(px_p_cursor):
-            self.context["t_m_hovered_tile"] = (
+            t_p_hovered_tile = (
                 px_p_cursor + self.px_p_delta
             ) // self.px_scaled_tile_size
+            self.context["t_m_hovered_tile"] = t_p_hovered_tile + self.t_m_anchor
             self.move_map_with_mouse(px_p_cursor)
+            self.process_mouse_buttons(inputs["buttons"])
         else:
             self.context["t_m_hovered_tile"] = None
         # Keyboard related
         self.process_key_inputs(inputs["keys"])
+
+    def process_mouse_buttons(self, buttons):
+        if buttons[0] and self.can_click("l_mouse_button"):
+            self.apply_click_to_map(is_left_button=True)
+        if buttons[2] and self.can_click("r_mouse_button"):
+            self.apply_click_to_map(is_left_button=False)
+
+    def apply_click_to_map(self, is_left_button):
+        entity_type = "wall" if self.context["is_top_layer_selected"] else "ground"
+        filler = (
+            [entity_type, self.context["selected_sprite_name"]]
+            if is_left_button
+            else []
+        )
+        if self.context["map"].is_valid_t_pos(self.context["t_m_hovered_tile"]):
+            if self.context["is_top_layer_selected"]:
+                self.context["map"].set("top", self.context["t_m_hovered_tile"], filler)
+            else:
+                self.context["map"].set(
+                    "bottom", self.context["t_m_hovered_tile"], filler
+                )
 
     def process_key_inputs(self, keys):
         # Zoom In / Out
@@ -119,12 +148,21 @@ class MapEditor(Panel):
         if keys[pygame.K_t] and self.scale_ratio > 1 / 4:
             self.zoom_out()
         if keys[pygame.K_c]:  # Toggle backdrop visibility
-            if time.time() - self.display_backdrop_flag_time > self.toggle_delta_time:
+            if self.can_click("display_backdrop_flag"):
                 self.display_backdrop_flag += 1
                 self.display_backdrop_flag %= 3
                 self.display_backdrop_flag_time = time.time()
                 tmp = ["off", "on", "on top"]
                 print(f"[ ] - Backdrop is {tmp[self.display_backdrop_flag]}")
+        if keys[pygame.K_a]:  # Layer selection
+            if self.can_click("is_top_layer_selected"):
+                self.context["is_top_layer_selected"] = not self.context[
+                    "is_top_layer_selected"
+                ]
+                self.is_top_layer_selected_time = time.time()
+                print(
+                    f"""[ ] - Editing top layer: {self.context["is_top_layer_selected"]}"""
+                )
 
     def zoom_in(self):
         """For both zoom_in and zoom_out, do not change the window size,
@@ -134,7 +172,7 @@ class MapEditor(Panel):
         self.t_panel_size.x = int(self.t_panel_size.x // 2)
         self.t_panel_size.y = int(self.t_panel_size.y // 2)
         self.px_scaled_tile_size = int(self.px_scaled_tile_size * 2)
-        self.t_m_limits = self.t_map_size - self.t_panel_size
+        self.t_m_limits = self.context["map"].t_size - self.t_panel_size
         self.scale_ratio *= 2
         self.scaled_backdrop = display_utils.rescale_sprite(
             self.backdrop, self.scale_ratio
@@ -148,7 +186,7 @@ class MapEditor(Panel):
         self.t_panel_size.x = int(self.t_panel_size.x * 2)
         self.t_panel_size.y = int(self.t_panel_size.y * 2)
         self.px_scaled_tile_size = int(self.px_scaled_tile_size / 2)
-        self.t_m_limits = self.t_map_size - self.t_panel_size
+        self.t_m_limits = self.context["map"].t_size - self.t_panel_size
         self.scale_ratio /= 2
         self.scaled_backdrop = display_utils.rescale_sprite(
             self.backdrop, self.scale_ratio
@@ -200,26 +238,22 @@ class MapEditor(Panel):
         if self.px_p_delta // self.px_scaled_tile_size:
             self.t_m_anchor += self.px_p_delta // self.px_scaled_tile_size
             self.px_p_delta = self.px_p_delta % self.px_scaled_tile_size
+        if self.t_m_anchor <= Vector2(0, 0):
+            origin = Vector2(0, 0)
+            self.t_m_anchor = origin
+            self.px_p_delta = origin
 
     ### Utils functions
-
-    def is_valid_pos_on_map(self, pos):
-        if (
-            pos.x < 0
-            or pos.y < 0
-            or pos.x >= self.t_map_size.x
-            or pos.y >= self.t_map_size.y
-        ):
-            return False
-        else:
-            return True
 
     def is_cursor_hovering(self, px_p_pos):
         return px_p_pos < self.px_panel_size
 
-    def get_first_non_empty_tile(self):
-        for y in range(len(self.map["top"])):
-            for x in range(len(self.map["top"][y])):
-                if self.map["top"][y][x] or self.map["bottom"][y][x]:
-                    return Vector2(x, y)
-        return None
+    def can_click(self, button_id):
+        if button_id not in self.delays:
+            return True
+        now = time.time()
+        if now - self.delays[button_id] > self.input_delta_time:
+            self.delays[button_id] = now
+            return True
+        else:
+            return False
