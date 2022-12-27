@@ -6,25 +6,15 @@ from tqdm import tqdm
 
 import config
 import Panels
+from Vector2 import Vector2
 
 
 def create_panels(display, sprites, context, backdrop):
     panels = [
-        Panels.MapEditor(
-            display.subsurface(
-                pygame.Rect(
-                    0, 0, *(config.t_map_editor_panel_size * config.px_tile_size).get()
-                )
-            ),
-            config.px_tile_size,
-            sprites,
-            context,
-            backdrop,
-        ),
         Panels.TileVizualizer(
             display.subsurface(
                 pygame.Rect(
-                    (config.t_map_editor_panel_size.x + 1) * config.px_tile_size,
+                    0,
                     0,
                     *(config.t_tile_vizualizer_size * config.px_tile_size).get(),
                 )
@@ -36,7 +26,7 @@ def create_panels(display, sprites, context, backdrop):
         Panels.SpriteSelection(
             display.subsurface(
                 pygame.Rect(
-                    (config.t_map_editor_panel_size.x + 1) * config.px_tile_size,
+                    0,
                     (config.t_tile_vizualizer_size.y + 1) * config.px_tile_size,
                     *(config.t_sprite_selection_panel_size * config.px_tile_size).get(),
                 )
@@ -45,11 +35,27 @@ def create_panels(display, sprites, context, backdrop):
             sprites,
             context,
         ),
+        Panels.MapEditor(
+            display.subsurface(
+                pygame.Rect(
+                    (
+                        (config.t_sprite_selection_panel_size.x + 1)
+                        * config.px_tile_size
+                    ),
+                    0,
+                    *(config.t_map_editor_panel_size * config.px_tile_size).get(),
+                )
+            ),
+            config.px_tile_size,
+            sprites,
+            context,
+            backdrop,
+        ),
         # Vertical separation
         Panels.EmptyPanel(
             display.subsurface(
                 pygame.Rect(
-                    config.t_map_editor_panel_size.x * config.px_tile_size,
+                    config.t_sprite_selection_panel_size.x * config.px_tile_size,
                     0,
                     config.px_tile_size,
                     config.t_map_editor_panel_size.y * config.px_tile_size,
@@ -61,7 +67,7 @@ def create_panels(display, sprites, context, backdrop):
         Panels.EmptyPanel(
             display.subsurface(
                 pygame.Rect(
-                    (config.t_map_editor_panel_size.x + 1) * config.px_tile_size,
+                    0,
                     config.t_tile_vizualizer_size.y * config.px_tile_size,
                     config.t_tile_vizualizer_size.x * config.px_tile_size,
                     config.px_tile_size,
@@ -120,3 +126,18 @@ def rescale_sprite(sprite, resize_factor):
     return pygame.transform.scale(
         sprite, (int(size[0] * resize_factor), int(size[1] * resize_factor))
     )
+
+
+def create_isometric_sprites(sprites, px_tile_size):
+    """Rotate by 45° then stretch horizontally to get the isometric look"""
+    res = {}
+    # I'm not transforming the sprites directly as pygame would fill with color
+    # the empty ares created by the rotation
+    tmp_size = px_tile_size
+    for sprite_name, sprite in sprites.items():
+        s = pygame.Surface((tmp_size, tmp_size), pygame.SRCALPHA)
+        s.blit(sprite, (0, 0))
+        s = pygame.transform.rotate(s, 45)
+        s = pygame.transform.scale(s, (tmp_size * 4, tmp_size * 2))
+        res[sprite_name] = s
+    return res

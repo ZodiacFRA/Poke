@@ -37,6 +37,7 @@ class MapEditor(Panel):
             "display_backdrop_flag": tmp,
             "is_top_layer_selected": tmp,
         }
+        # self.zoom_out()
 
     ### Drawing functions
 

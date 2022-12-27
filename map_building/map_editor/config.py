@@ -6,7 +6,7 @@ from Vector2 import Vector2
 px_tile_size = 32
 
 t_map_editor_panel_size = Vector2(32, 32)
-t_tile_vizualizer_size = Vector2(8, 8)
+t_tile_vizualizer_size = Vector2(8, 11)
 t_sprite_selection_panel_size = Vector2(
     t_tile_vizualizer_size.x, t_map_editor_panel_size.y - t_tile_vizualizer_size.y - 1
 )

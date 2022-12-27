@@ -18,8 +18,8 @@ class App(object):
         backdrop_resize_factor=1,
     ):
         ### FPS
-        self.delta_time = 1 / 30
-        self.frame_start_time = time.time()
+        self.fps = 30
+        self.clock = pygame.time.Clock()
         ### Pygame
         pygame.init()
         pygame.display.set_caption("Level editor")
@@ -72,12 +72,7 @@ class App(object):
                 print("[ ] - App: Stopping")
                 pygame.quit()
                 return 0
-        to_sleep = self.delta_time - (time.time() - self.frame_start_time)
-        if to_sleep > 0:
-            time.sleep(to_sleep)
-        elif debug:
-            print(f"[-] - App: Lagging behind: {to_sleep}")
-        self.frame_start_time = time.time()
+        self.clock.tick(self.fps)
         self.display.fill("#000000")
         return 1
 
