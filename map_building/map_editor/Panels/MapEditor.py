@@ -24,7 +24,9 @@ class MapEditor(Panel):
         self.scale_ratio = 1
         self.px_scaled_tile_size = self.px_tile_size
         ### Utils
-        self.grid_surface = self.recompute_grid_surface()
+        self.grid_surface = display_utils.create_grid_surface(
+            self.px_panel_size, self.px_scaled_tile_size
+        )
         ### Backdrop
         self.backdrop = backdrop
         self.scaled_backdrop = backdrop
@@ -195,18 +197,9 @@ class MapEditor(Panel):
         self.scaled_sprites = display_utils.rescale_sprites(
             self.sprites, self.scale_ratio
         )
-        self.grid_surface = self.recompute_grid_surface()
-
-    def recompute_grid_surface(self):
-        px_height = self.px_panel_size.y + self.px_scaled_tile_size
-        px_width = self.px_panel_size.x + self.px_scaled_tile_size
-        grid_surface = pygame.Surface((px_width, px_height), pygame.SRCALPHA)
-        grid_surface.set_alpha(100)
-        for y in range(0, px_height, self.px_scaled_tile_size):
-            pygame.draw.line(grid_surface, "#000000", (0, y), (px_width, y))
-        for x in range(0, px_width, self.px_scaled_tile_size):
-            pygame.draw.line(grid_surface, "#000000", (x, 0), (x, px_height))
-        return grid_surface
+        self.grid_surface = display_utils.create_grid_surface(
+            self.px_panel_size, self.px_scaled_tile_size
+        )
 
     def move_map_with_mouse(self, px_p_cursor):
         """t_tiles_delta represents how far the cursor is from the mouse_moving_zone
@@ -243,18 +236,3 @@ class MapEditor(Panel):
             origin = Vector2(0, 0)
             self.t_m_anchor = origin
             self.px_p_delta = origin
-
-    ### Utils functions
-
-    def is_cursor_hovering(self, px_p_pos):
-        return px_p_pos < self.px_panel_size
-
-    def can_click(self, button_id):
-        if button_id not in self.delays:
-            return True
-        now = time.time()
-        if now - self.delays[button_id] > self.input_delta_time:
-            self.delays[button_id] = now
-            return True
-        else:
-            return False

@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 from Vector2 import Vector2
@@ -12,6 +14,7 @@ class EmptyPanel(object):
         self.px_tile_size = px_tile_size
         self.px_panel_size = Vector2(*self.display.get_size())
         self.t_panel_size = self.px_panel_size // px_tile_size
+        self.delays = {}
 
     def draw(self):
         size = self.display.get_size()
@@ -37,6 +40,19 @@ class EmptyPanel(object):
 
     def process(self, inputs):
         return
+
+    def is_cursor_hovering(self, px_p_pos):
+        return px_p_pos >= Vector2(0, 0) and px_p_pos < self.px_panel_size
+
+    def can_click(self, button_id):
+        if button_id not in self.delays:
+            return True
+        now = time.time()
+        if now - self.delays[button_id] > self.input_delta_time:
+            self.delays[button_id] = now
+            return True
+        else:
+            return False
 
 
 class Panel(EmptyPanel):

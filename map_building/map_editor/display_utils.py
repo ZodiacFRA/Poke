@@ -141,3 +141,14 @@ def create_isometric_sprites(sprites, px_tile_size):
         s = pygame.transform.scale(s, (tmp_size * 4, tmp_size * 2))
         res[sprite_name] = s
     return res
+
+
+def create_grid_surface(px_panel_size, px_tile_size):
+    px_surface_size = px_panel_size + Vector2(px_tile_size, px_tile_size)
+    grid_surface = pygame.Surface(px_surface_size.get(), pygame.SRCALPHA)
+    grid_surface.set_alpha(100)
+    for y in range(0, px_surface_size.y, px_tile_size):
+        pygame.draw.line(grid_surface, "#000000", (0, y), (px_surface_size.x, y))
+    for x in range(0, px_surface_size.x, px_tile_size):
+        pygame.draw.line(grid_surface, "#000000", (x, 0), (x, px_surface_size.y))
+    return grid_surface
